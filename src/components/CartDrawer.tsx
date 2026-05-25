@@ -354,9 +354,9 @@ export default function CartDrawer({
                         </div>
                       </div>
 
-                      <div className="border border-emerald-100 bg-emerald-50/40 p-2.5 rounded text-[11px] text-emerald-900 flex items-center gap-2">
-                        <Shield className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Paiement 100% sécurisé via Stripe. Vos données sont protégées.</span>
+                      <div className="border border-amber-100 bg-amber-50/40 p-2.5 rounded text-[11px] text-amber-900 flex items-center gap-2">
+                        <RefreshCcw className="w-3.5 h-3.5 text-amber-600 animate-spin" />
+                        <span>Mode de démonstration actif. Aucune transaction financière réelle.</span>
                       </div>
                     </motion.div>
                   )}
@@ -454,7 +454,7 @@ export default function CartDrawer({
                     <button
                       id="checkout-action-btn"
                       onClick={handleCheckout}
-                      disabled={isSubmitting || stripeLoading}
+                      disabled={isSubmitting}
                       className="flex-[2] py-3 text-xs tracking-wider uppercase text-white font-bold transition-all shadow-md flex items-center justify-center gap-1.5 hover:shadow-lg hover:brightness-110 disabled:opacity-70 disabled:cursor-not-allowed"
                       style={{
                         backgroundColor: themeSettings.primaryColor,
@@ -474,11 +474,6 @@ export default function CartDrawer({
                         </>
                       ) : checkoutStep === 'shipping' ? (
                         'Continuer vers le paiement'
-                      ) : stripeLoading ? (
-                        <>
-                          <RefreshCcw className="w-3.5 h-3.5 animate-spin" />
-                          Redirection vers Stripe...
-                        </>
                       ) : (
                         `Payer & Finaliser (${grandTotal.toFixed(2)}€)`
                       )}
