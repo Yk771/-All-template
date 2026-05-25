@@ -12,8 +12,8 @@ export function useStripeCheckout() {
     try {
       const items = cart.map((item) => ({
         productId: item.id.split('-')[0], // ex: prod_1 depuis prod_1-variant
-        title: item.title,
-        price: item.price,
+        title: item.product.title,
+        price: item.product.price,
         quantity: item.quantity,
       }));
 
