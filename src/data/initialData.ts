@@ -23,7 +23,7 @@ export const PRODUCTS: Product[] = [
       { label: 'Format', value: 'Espace de travail Notion (Lien duplicable)' },
       { label: 'Compatibilité', value: 'Notion (Compte gratuit suffisant)' },
       { label: 'Livraison', value: 'Téléchargement immédiat par e-mail' },
-      { label: 'Accès', value: 'Duplication immédiate & Mises à jour incluses' }
+      { label: 'Accès', value: 'Lien de duplication immédiate et accès à vie' }
     ],
     tags: ['Notion', 'Business', 'Comptabilité', 'CRM', 'Projets'],
     inStock: true,
@@ -185,12 +185,12 @@ export const PRODUCTS: Product[] = [
       { name: 'Modèle de Suivi', values: ['Musculation & Fitness', 'Running & Endurance', 'Hybride Multisports'] }
     ],
     badges: ['Plus populaire'],
-    specs: [
-      { label: 'Contenu', value: 'Base de données de plus de 60 exercices types' },
-      { label: 'Prise en main', value: 'Lien immédiat suite à validation' },
-      { label: 'Format', value: 'Notion Template' },
-      { label: 'Mises à jour', value: 'Incluses à vie' }
-    ],
+      specs: [
+        { label: 'Contenu', value: 'Base de données de plus de 60 exercices types' },
+        { label: 'Prise en main', value: 'Lien immédiat suite à validation' },
+        { label: 'Format', value: 'Notion Template' },
+        { label: 'Accès', value: 'Illimité à vie' }
+      ],
     tags: ['Fitness', 'Santé', 'Muscle', 'Nutrition', 'Notion'],
     inStock: true,
     inventoryCount: 999,

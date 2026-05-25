@@ -116,6 +116,7 @@ export default function App() {
           onAddToCart={handleAddToCart}
           cartCount={activeCartCount}
           onOpenCart={() => setIsCartOpen(true)}
+          addToast={addToast}
         />
       </div>
 

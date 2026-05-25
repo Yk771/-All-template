@@ -38,6 +38,7 @@ interface StorefrontPreviewProps {
   onAddToCart: (product: Product, selectedVariant: SelectedVariant, customText?: string) => void;
   cartCount: number;
   onOpenCart: () => void;
+  addToast?: (message: string, type?: 'success' | 'info') => void;
 }
 
 export default function StorefrontPreview({
@@ -46,6 +47,7 @@ export default function StorefrontPreview({
   onAddToCart,
   cartCount,
   onOpenCart,
+  addToast = () => {},
 }: StorefrontPreviewProps) {
   // Navigation & search state
   const [page, setPage] = useState<'home' | 'shop' | 'product' | 'faq'>('home');
@@ -63,6 +65,29 @@ export default function StorefrontPreview({
   const [previewModalUrl, setPreviewModalUrl] = useState<string | null>(null);
   const [customDescription, setCustomDescription] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+
+  // Dynamic user-submitted product reviews system
+  interface UserReview {
+    rating: number;
+    text: string;
+    author: string;
+    date: string;
+  }
+  const [reviewsState, setReviewsState] = useState<Record<string, UserReview[]>>({});
+  const [activeReviewFormId, setActiveReviewFormId] = useState<string | null>(null);
+  const [newReviewText, setNewReviewText] = useState('');
+  const [newReviewRating, setNewReviewRating] = useState(5);
+  const [newReviewAuthor, setNewReviewAuthor] = useState('');
+
+  const getProductRatingDetails = (productId: string) => {
+    const list = reviewsState[productId] || [];
+    if (list.length === 0) {
+      return { rating: 0, reviewCount: 0, list };
+    }
+    const sum = list.reduce((acc, r) => acc + r.rating, 0);
+    const avg = Math.round((sum / list.length) * 10) / 10;
+    return { rating: avg, reviewCount: list.length, list };
+  };
 
   const getProductDisplayPrice = (p: Product) => {
     return p.price;
@@ -152,9 +177,9 @@ export default function StorefrontPreview({
     }
 
     if (sortOption === 'rating') {
-      result.sort((a, b) => b.rating - a.rating);
+      result.sort((a, b) => getProductRatingDetails(b.id).rating - getProductRatingDetails(a.id).rating);
     } else if (sortOption === 'reviews') {
-      result.sort((a, b) => b.reviewCount - a.reviewCount);
+      result.sort((a, b) => getProductRatingDetails(b.id).reviewCount - getProductRatingDetails(a.id).reviewCount);
     }
 
     return result;
@@ -444,7 +469,7 @@ export default function StorefrontPreview({
         );
 
       case 'features-grid':
-        const colsValue = sec.settings.cols === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-3';
+        const colsValue = sec.settings.cols === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto';
         return (
           <section
             id={`features-sec-${sec.id}`}
@@ -476,11 +501,6 @@ export default function StorefrontPreview({
                     title: "Prise en Main en 2min",
                     text: "Il vous suffit de cliquer sur le lien reçu pour dupliquer instantanément le template sur votre espace personnel 100% gratuitement.",
                     icon: ShieldCheck
-                  },
-                  {
-                    title: "Mises à jour à vie gratuites",
-                    text: "Chaque amélioration apportée au template vous est transmise gratuitement par email pour garantir un outil toujours performant.",
-                    icon: Workflow
                   }
                 ].map((item, i) => {
                   const IconComp = item.icon;
@@ -569,16 +589,150 @@ export default function StorefrontPreview({
                 <div className="lg:col-span-5 space-y-5">
                   <div>
                     {/* Star Rating Reviews */}
-                    <div className="flex items-center gap-1.5 text-amber-500 mb-1.5">
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="w-3.5 h-3.5 fill-current stroke-[1.5]" />
-                        ))}
-                      </div>
-                      <span className="text-gray-400 font-sans text-xs font-semibold">
-                        {prod.rating} ({prod.reviewCount} avis clients)
-                      </span>
-                    </div>
+                    {(() => {
+                      const ratingDetails = getProductRatingDetails(prod.id);
+                      return (
+                        <div className="mb-2">
+                          <div 
+                            onClick={() => setActiveReviewFormId(activeReviewFormId === prod.id ? null : prod.id)}
+                            className="flex items-center gap-1.5 text-amber-500 cursor-pointer hover:opacity-85 select-none"
+                            title="Cliquez pour évaluer ou laisser un commentaire"
+                          >
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <Star 
+                                  key={i} 
+                                  className={`w-3.5 h-3.5 stroke-[1.5] ${i < ratingDetails.rating ? 'fill-current text-amber-500' : 'text-gray-300 fill-none'}`} 
+                                />
+                              ))}
+                            </div>
+                            <span className="text-gray-400 font-sans text-xs font-semibold hover:underline">
+                              {ratingDetails.rating} ({ratingDetails.reviewCount} {ratingDetails.reviewCount <= 1 ? 'avis client' : 'avis clients'})
+                              {ratingDetails.reviewCount === 0 && <span className="text-[10px] text-zinc-400 ml-1.5 font-normal">(cliquez pour évaluer)</span>}
+                            </span>
+                          </div>
+
+                          {/* Interactive Review Form */}
+                          {activeReviewFormId === prod.id && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="bg-gray-50 border border-gray-150 p-4 rounded-lg my-3 space-y-3 font-sans text-xs text-zinc-800"
+                            >
+                              <div className="font-extrabold text-zinc-900">Rédiger un avis pour ce template</div>
+                              
+                              {/* Nom */}
+                              <div className="space-y-1">
+                                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider">Votre nom / Pseudonyme</label>
+                                <input
+                                  type="text"
+                                  placeholder="Ex: Alexandre D."
+                                  value={newReviewAuthor}
+                                  onChange={(e) => setNewReviewAuthor(e.target.value)}
+                                  className="w-full bg-white border border-gray-200 p-2 rounded text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-800"
+                                />
+                              </div>
+
+                              {/* Etoiles */}
+                              <div className="space-y-1">
+                                <label className="block text-[9px] font-bold text-gray-450 uppercase tracking-wider">Note globale</label>
+                                <div className="flex gap-1">
+                                  {[1, 2, 3, 4, 5].map((starVal) => (
+                                    <button
+                                      type="button"
+                                      key={starVal}
+                                      onClick={() => setNewReviewRating(starVal)}
+                                      className="cursor-pointer hover:scale-110 transition-all text-amber-500"
+                                    >
+                                      <Star
+                                        className={`w-5 h-5 ${starVal <= newReviewRating ? 'fill-current' : 'text-gray-300 fill-none'}`}
+                                      />
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Commentaire */}
+                              <div className="space-y-1">
+                                <label className="block text-[9px] font-bold text-gray-450 uppercase tracking-wider">Votre avis</label>
+                                <textarea
+                                  placeholder="Votre retour d'expérience sur ce template..."
+                                  rows={2}
+                                  value={newReviewText}
+                                  onChange={(e) => setNewReviewText(e.target.value)}
+                                  className="w-full bg-white border border-gray-200 p-2 rounded text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-800"
+                                />
+                              </div>
+
+                              {/* Boutons */}
+                              <div className="flex gap-2 pt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (!newReviewText.trim()) {
+                                      addToast("Veuillez saisir votre avis.", "info");
+                                      return;
+                                    }
+                                    const authorName = newReviewAuthor.trim() || 'Client vérifié';
+                                    const newReviewObj = {
+                                      rating: newReviewRating,
+                                      text: newReviewText,
+                                      author: authorName,
+                                      date: new Date().toLocaleDateString('fr-FR')
+                                    };
+                                    setReviewsState((prev) => ({
+                                      ...prev,
+                                      [prod.id]: [newReviewObj, ...(prev[prod.id] || [])]
+                                    }));
+                                    addToast("🎉 Merci ! Votre avis a été ajouté avec succès !", "success");
+                                    setNewReviewText('');
+                                    setNewReviewRating(5);
+                                    setNewReviewAuthor('');
+                                    setActiveReviewFormId(null);
+                                  }}
+                                  style={{ backgroundColor: themeSettings.primaryColor }}
+                                  className="text-white text-[10px] font-extrabold uppercase tracking-widest px-3.5 py-2 rounded shadow hover:brightness-110 cursor-pointer"
+                                >
+                                  Envoyer l'avis
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveReviewFormId(null);
+                                    setNewReviewText('');
+                                    setNewReviewRating(5);
+                                    setNewReviewAuthor('');
+                                  }}
+                                  className="text-gray-500 hover:text-black hover:bg-gray-100 text-[10px] uppercase font-bold px-3 py-2 rounded cursor-pointer"
+                                >
+                                  Annuler
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
+
+                          {ratingDetails.reviewCount > 0 && (
+                            <div className="mt-2 space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                              {ratingDetails.list.map((r, iIdx) => (
+                                <div key={iIdx} className="bg-gray-50 border border-gray-150 p-2.5 rounded text-[11px]">
+                                  <div className="flex justify-between items-center mb-0.5 font-bold">
+                                    <span className="text-zinc-900">{r.author}</span>
+                                    <span className="text-[9px] text-zinc-400">{r.date}</span>
+                                  </div>
+                                  <div className="flex text-amber-500 mb-1">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star key={i} className={`w-2.5 h-2.5 ${i < r.rating ? 'fill-current' : 'text-gray-300 fill-none'}`} />
+                                    ))}
+                                  </div>
+                                  <p className="text-zinc-600 leading-normal italic">"{r.text}"</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 leading-tight">
                       {prod.title}
@@ -777,14 +931,22 @@ export default function StorefrontPreview({
                       {/* Info Area */}
                       <div className="p-4 flex-1 flex flex-col justify-between">
                         <div>
-                          <div className="flex items-center text-amber-500 gap-1 text-[10px] mb-1">
-                            <div className="flex">
-                              {[...Array(5)].map((_, i) => (
-                                <Star key={i} className="w-2.5 h-2.5 fill-current stroke-0" />
-                              ))}
-                            </div>
-                            <span className="text-gray-400 font-sans font-bold">({p.rating})</span>
-                          </div>
+                          {(() => {
+                            const rDetails = getProductRatingDetails(p.id);
+                            return (
+                              <div className="flex items-center text-amber-500 gap-1 text-[10px] mb-1">
+                                <div className="flex">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star 
+                                      key={i} 
+                                      className={`w-2.5 h-2.5 ${i < rDetails.rating ? 'fill-current text-amber-500' : 'text-gray-300 fill-none'} stroke-[1.2]`} 
+                                    />
+                                  ))}
+                                </div>
+                                <span className="text-gray-400 font-sans font-bold">({rDetails.rating})</span>
+                              </div>
+                            );
+                          })()}
 
                           <h4 className="font-bold text-xs text-zinc-950 tracking-tight leading-snug line-clamp-1 mb-1 group-hover:text-zinc-800 transition-colors">
                             {p.title}
@@ -1113,14 +1275,22 @@ export default function StorefrontPreview({
                     <div className="p-4 flex-1 flex flex-col justify-between">
                       <div>
                         {/* Rating block */}
-                        <div className="flex items-center text-amber-500 gap-1 text-[9px] mb-1 font-bold">
-                          <div className="flex">
-                            {[...Array(5)].map((_, i) => (
-                              <Star key={i} className="w-2.5 h-2.5 fill-current stroke-0" />
-                            ))}
-                          </div>
-                          <span className="text-zinc-400 font-sans">({p.rating})</span>
-                        </div>
+                        {(() => {
+                          const rDetails = getProductRatingDetails(p.id);
+                          return (
+                            <div className="flex items-center text-amber-500 gap-1 text-[9px] mb-1 font-bold">
+                              <div className="flex">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star 
+                                    key={i} 
+                                    className={`w-2.5 h-2.5 ${i < rDetails.rating ? 'fill-current text-amber-500' : 'text-gray-350 fill-none'} stroke-[1.2]`} 
+                                  />
+                                ))}
+                              </div>
+                              <span className="text-zinc-400 font-sans">({rDetails.rating})</span>
+                            </div>
+                          );
+                        })()}
 
                         <h3 className="font-extrabold text-xs text-zinc-950 tracking-tight leading-snug mb-1 line-clamp-1 group-hover:text-zinc-800 transition-colors">
                           {p.title}
@@ -1265,14 +1435,150 @@ export default function StorefrontPreview({
             {/* Right Col: Parameters controls */}
             <div className="lg:col-span-5 space-y-6">
               <div>
-                <div className="flex items-center gap-1 text-amber-500 mb-2 font-bold text-xs">
-                  <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-current stroke-[1.5]" />
-                    ))}
-                  </div>
-                  <span className="text-gray-400 font-sans font-bold">{prod.rating} ({prod.reviewCount} avis clients)</span>
-                </div>
+                {(() => {
+                  const ratingDetails = getProductRatingDetails(prod.id);
+                  return (
+                    <div className="mb-3">
+                      <div 
+                        onClick={() => setActiveReviewFormId(activeReviewFormId === prod.id ? null : prod.id)}
+                        className="flex items-center gap-1.5 text-amber-500 cursor-pointer hover:opacity-85 select-none text-xs font-bold"
+                        title="Cliquez pour évaluer ou laisser un commentaire"
+                      >
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <Star 
+                              key={i} 
+                              className={`w-3.5 h-3.5 stroke-[1.5] ${i < ratingDetails.rating ? 'fill-current text-amber-500' : 'text-gray-300 fill-none'}`} 
+                            />
+                          ))}
+                        </div>
+                        <span className="text-gray-400 font-sans hover:underline">
+                          {ratingDetails.rating} ({ratingDetails.reviewCount} {ratingDetails.reviewCount <= 1 ? 'avis client' : 'avis clients'})
+                          {ratingDetails.reviewCount === 0 && <span className="text-[10px] text-zinc-400 ml-1.5 font-normal">(cliquez pour évaluer)</span>}
+                        </span>
+                      </div>
+
+                      {/* Interactive Review Form */}
+                      {activeReviewFormId === prod.id && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="bg-gray-50 border border-gray-150 p-4 rounded-lg my-3 space-y-3 font-sans text-xs text-zinc-800"
+                        >
+                          <div className="font-extrabold text-zinc-900">Rédiger un avis pour ce template</div>
+                          
+                          {/* Nom */}
+                          <div className="space-y-1">
+                            <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider">Votre nom / Pseudonyme</label>
+                            <input
+                              type="text"
+                              placeholder="Ex: Alexandre D."
+                              value={newReviewAuthor}
+                              onChange={(e) => setNewReviewAuthor(e.target.value)}
+                              className="w-full bg-white border border-gray-200 p-2 rounded text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-800"
+                            />
+                          </div>
+
+                          {/* Etoiles */}
+                          <div className="space-y-1">
+                            <label className="block text-[9px] font-bold text-gray-450 uppercase tracking-wider">Note globale</label>
+                            <div className="flex gap-1">
+                              {[1, 2, 3, 4, 5].map((starVal) => (
+                                <button
+                                  type="button"
+                                  key={starVal}
+                                  onClick={() => setNewReviewRating(starVal)}
+                                  className="cursor-pointer hover:scale-110 transition-all text-amber-500"
+                                >
+                                  <Star
+                                    className={`w-5 h-5 ${starVal <= newReviewRating ? 'fill-current' : 'text-gray-300 fill-none'}`}
+                                  />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Commentaire */}
+                          <div className="space-y-1">
+                            <label className="block text-[9px] font-bold text-gray-450 uppercase tracking-wider">Votre avis</label>
+                            <textarea
+                              placeholder="Votre retour d'expérience sur ce template..."
+                              rows={2}
+                              value={newReviewText}
+                              onChange={(e) => setNewReviewText(e.target.value)}
+                              className="w-full bg-white border border-gray-200 p-2 rounded text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-800"
+                            />
+                          </div>
+
+                          {/* Boutons */}
+                          <div className="flex gap-2 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!newReviewText.trim()) {
+                                  addToast("Veuillez saisir votre avis.", "info");
+                                  return;
+                                }
+                                const authorName = newReviewAuthor.trim() || 'Client vérifié';
+                                const newReviewObj = {
+                                  rating: newReviewRating,
+                                  text: newReviewText,
+                                  author: authorName,
+                                  date: new Date().toLocaleDateString('fr-FR')
+                                };
+                                setReviewsState((prev) => ({
+                                  ...prev,
+                                  [prod.id]: [newReviewObj, ...(prev[prod.id] || [])]
+                                }));
+                                addToast("🎉 Merci ! Votre avis a été ajouté avec succès !", "success");
+                                setNewReviewText('');
+                                setNewReviewRating(5);
+                                setNewReviewAuthor('');
+                                setActiveReviewFormId(null);
+                              }}
+                              style={{ backgroundColor: themeSettings.primaryColor }}
+                              className="text-white text-[10px] font-extrabold uppercase tracking-widest px-3.5 py-2 rounded shadow hover:brightness-110 cursor-pointer"
+                            >
+                              Envoyer l'avis
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveReviewFormId(null);
+                                setNewReviewText('');
+                                setNewReviewRating(5);
+                                setNewReviewAuthor('');
+                              }}
+                              className="text-gray-500 hover:text-black hover:bg-gray-100 text-[10px] uppercase font-bold px-3 py-2 rounded cursor-pointer"
+                            >
+                              Annuler
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {ratingDetails.reviewCount > 0 && (
+                        <div className="mt-2 space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                          {ratingDetails.list.map((r, iIdx) => (
+                            <div key={iIdx} className="bg-gray-50 border border-gray-150 p-2.5 rounded text-[11px]">
+                              <div className="flex justify-between items-center mb-0.5 font-bold">
+                                <span className="text-zinc-900">{r.author}</span>
+                                <span className="text-[9px] text-zinc-400">{r.date}</span>
+                              </div>
+                              <div className="flex text-amber-500 mb-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star key={i} className={`w-2.5 h-2.5 ${i < r.rating ? 'fill-current' : 'text-gray-300 fill-none'}`} />
+                                ))}
+                              </div>
+                              <p className="text-zinc-650 leading-relaxed italic">"{r.text}"</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 tracking-tight leading-tight">
                   {prod.title}

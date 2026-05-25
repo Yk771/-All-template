@@ -481,9 +481,9 @@ export default function ExportModal({ isOpen, onClose, sections, themeSettings, 
         border-radius: ${themeSettings.cardRadius === 'none' ? '0px' : themeSettings.cardRadius === 'sm' ? '2px' : themeSettings.cardRadius === 'md' ? '6px' : themeSettings.cardRadius === 'lg' ? '12px' : '24px'};
         border: ${themeSettings.showBorders ? '1px solid rgba(0,0,0,0.08)' : 'none'};
       ">
-        <div style="font-size: 28px; margin-bottom: 16px; color: ${themeSettings.accentColor}; line-height: 1;">🔄</div>
-        <h4 style="font-weight: 750; font-size: 15px; margin: 0 0 10px 0; letter-spacing: -0.01em;">Mises à jour à vie</h4>
-        <p style="font-size: 11.5px; opacity: 0.8; line-height: 1.6; margin: 0;">Nous mettons régulièrement à jour nos modules d'organisation. Les mises à jour s'appliquent gratuitement.</p>
+        <div style="font-size: 28px; margin-bottom: 16px; color: ${themeSettings.accentColor}; line-height: 1;">⚡</div>
+        <h4 style="font-weight: 750; font-size: 15px; margin: 0 0 10px 0; letter-spacing: -0.01em;">Prise en Main en 2min</h4>
+        <p style="font-size: 11.5px; opacity: 0.8; line-height: 1.6; margin: 0;">Il vous suffit de cliquer sur le lien reçu pour dupliquer instantanément le template sur votre espace personnel 100% gratuitement.</p>
       </div>
 
       <div class="features-item" style="
