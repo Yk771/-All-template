@@ -43,20 +43,25 @@ export default function App() {
     // Unique ID combining product + variant combination details and customText
     const uniqueCombinationId = `${product.id}-${JSON.stringify(selectedVariant)}-${customText || ''}`;
 
+    const existing = cart.find((item) => item.id === uniqueCombinationId);
+
     setCart((prev) => {
-      const existing = prev.find((item) => item.id === uniqueCombinationId);
-      if (existing) {
-        addToast(`Quantité mise à jour pour ${product.title} dans votre panier`, 'info');
+      const alreadyInCart = prev.find((item) => item.id === uniqueCombinationId);
+      if (alreadyInCart) {
         return prev.map((item) =>
           item.id === uniqueCombinationId ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      
+      return [...prev, { id: uniqueCombinationId, product, selectedVariant, quantity: 1, customText }];
+    });
+
+    if (existing) {
+      addToast(`Quantité mise à jour pour ${product.title} dans votre panier`, 'info');
+    } else {
       const variantDesc = Object.values(selectedVariant).join(' / ');
       const displayTitle = variantDesc ? `${product.title} (${variantDesc})` : product.title;
       addToast(`${displayTitle} a été ajouté à votre panier !`);
-      return [...prev, { id: uniqueCombinationId, product, selectedVariant, quantity: 1, customText }];
-    });
+    }
 
     // Auto trigger slide drawer open
     setIsCartOpen(true);
@@ -73,13 +78,13 @@ export default function App() {
   };
 
   const handleRemoveItem = (id: string) => {
-    setCart((prev) => {
-      const item = prev.find((i) => i.id === id);
-      if (item) {
-        addToast(`${item.product.title} retiré du panier`, 'info');
-      }
-      return prev.filter((i) => i.id !== id);
-    });
+    const itemToRemove = cart.find((i) => i.id === id);
+
+    setCart((prev) => prev.filter((i) => i.id !== id));
+
+    if (itemToRemove) {
+      addToast(`${itemToRemove.product.title} retiré du panier`, 'info');
+    }
   };
 
   const handleClearCart = () => {
@@ -138,10 +143,10 @@ export default function App() {
               className={`p-3.5 rounded-lg shadow-xl border text-xs font-semibold flex items-center gap-2.5 pointer-events-auto transition-transform ${
                 toast.type === 'success' 
                   ? 'bg-emerald-900 border-emerald-800 text-white shadow-emerald-950/20' 
-                  : 'bg-zinc-850 border-zinc-750 text-white shadow-zinc-950/20'
+                  : 'bg-red-950 border-red-900 text-red-100 shadow-red-950/20'
               }`}
             >
-              <CheckCircle className={`w-4 h-4 shrink-0 ${toast.type === 'success' ? 'text-amber-400' : 'text-slate-300'}`} />
+              <CheckCircle className={`w-4 h-4 shrink-0 ${toast.type === 'success' ? 'text-amber-400' : 'text-red-400'}`} />
               <div className="flex-1 pr-1">{toast.message}</div>
             </motion.div>
           ))}

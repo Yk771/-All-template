@@ -62,6 +62,7 @@ export default function StorefrontPreview({
   });
   const [previewModalUrl, setPreviewModalUrl] = useState<string | null>(null);
   const [customDescription, setCustomDescription] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
 
   const getProductDisplayPrice = (p: Product) => {
     return p.price;
@@ -661,9 +662,11 @@ export default function StorefrontPreview({
                   <div className="space-y-2 pt-2">
                     <button
                       id="add-to-cart-showcase-btn"
-                      disabled={prod.id === 'prod_12' && !customDescription.trim()}
+                      disabled={isAdding || (prod.id === 'prod_12' && !customDescription.trim())}
                       onClick={(e) => {
                         e.stopPropagation();
+                        if (isAdding) return;
+                        setIsAdding(true);
                         // ensure default variant selected
                         const payload = { ...selectedVariants };
                         prod.variants.forEach(v => {
@@ -678,6 +681,7 @@ export default function StorefrontPreview({
                           };
                         }
                         onAddToCart(finalProduct, payload, prod.id === 'prod_12' ? customDescription.trim() : undefined);
+                        setTimeout(() => setIsAdding(false), 1000);
                       }}
                       style={{
                         backgroundColor: themeSettings.primaryColor,
@@ -1365,9 +1369,11 @@ export default function StorefrontPreview({
                 )}
 
                 <button
-                  disabled={prod.id === 'prod_12' && !customDescription.trim()}
+                  disabled={isAdding || (prod.id === 'prod_12' && !customDescription.trim())}
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (isAdding) return;
+                    setIsAdding(true);
                     const payload: SelectedVariant = {};
                     prod.variants.forEach(v => {
                       payload[v.name] = selectedVariants[v.name] || v.values[0];
@@ -1381,6 +1387,7 @@ export default function StorefrontPreview({
                       };
                     }
                     onAddToCart(finalProduct, payload, prod.id === 'prod_12' ? customDescription.trim() : undefined);
+                    setTimeout(() => setIsAdding(false), 1000);
                   }}
                   style={{ backgroundColor: themeSettings.primaryColor }}
                   className="w-full py-4 text-xs font-bold uppercase tracking-wider text-white hover:brightness-110 shadow transition-all flex items-center justify-center gap-2 rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"

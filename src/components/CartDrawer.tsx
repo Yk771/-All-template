@@ -31,8 +31,8 @@ export default function CartDrawer({
   const [checkoutStep, setCheckoutStep] = useState<'cart' | 'shipping'>('cart');
   
   // Shipping details state
-  const [name, setName] = useState('Jane Doe');
-  const [email, setEmail] = useState('contact@exemple.com');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [address, setAddress] = useState('100% Digital Download');
   const [city, setCity] = useState('Instant Email Delivery');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -264,7 +264,8 @@ export default function CartDrawer({
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full border border-gray-200 p-2.5 rounded-sm focus:outline-none focus:ring-1 focus:ring-zinc-800 focus:border-zinc-800"
+                            placeholder="Ex: Marie Dupont"
+                            className="w-full border border-gray-200 p-2.5 rounded-sm focus:outline-none focus:ring-1 focus:ring-zinc-800 focus:border-zinc-800 bg-white text-gray-900"
                           />
                         </div>
 
@@ -275,7 +276,7 @@ export default function CartDrawer({
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="w-full border border-gray-200 p-2.5 rounded-sm focus:outline-none focus:ring-1 focus:ring-zinc-800 focus:border-zinc-800 bg-white text-gray-900"
-                            placeholder="votre-email@exemple.com"
+                            placeholder="votre@email.com"
                             required
                           />
                         </div>
