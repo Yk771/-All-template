@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tracker Habitudes — ALL Templates</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f8f7f4;--card:#fff;--text:#1a1a2e;--muted:#9ca3af;--border:#e5e7eb;--orange:#f59e0b;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;padding-bottom:30px;}
+.topbar{background:#1a1a2e;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
+.brand{font-size:10px;font-weight:700;letter-spacing:3px;color:#f59e0b;text-transform:uppercase;}
+.reset-btn{background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;}
+.header{background:linear-gradient(135deg,#1a1a2e,#16213e);padding:20px 16px;color:#fff;}
+.header h1{font-size:28px;font-weight:800;margin-bottom:4px;}
+.header h1 span{color:#f59e0b;}
+.stats-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;margin-top:14px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.stats-row::-webkit-scrollbar{display:none;}
+.stat-box{background:rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;flex-shrink:0;text-align:center;}
+.stat-num{font-size:20px;font-weight:800;color:#f59e0b;}
+.stat-lbl{font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;}
+.main{padding:16px;}
+.month-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.month-title{font-size:17px;font-weight:700;}
+.nav-btns{display:flex;gap:8px;}
+.nav-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;}
+.habit-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
+.habit-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.habit-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.habit-name{font-size:14px;font-weight:700;flex:1;}
+.habit-streak{text-align:right;flex-shrink:0;}
+.streak-val{font-size:17px;font-weight:700;}
+.del-btn{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:2px;}
+.del-btn:hover{color:#ef4444;}
+.days-label{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
+.day-name{text-align:center;font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;}
+.days-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.day-cell{aspect-ratio:1;border-radius:6px;cursor:pointer;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted);user-select:none;transition:all 0.15s;}
+.day-cell:active{transform:scale(0.9);}
+.day-cell.done{}
+.day-cell.future{opacity:0.3;cursor:default;}
+.day-cell.today{box-shadow:0 0 0 2px #f59e0b;}
+.add-btn{width:100%;background:transparent;border:1px dashed var(--border);color:var(--orange);font-family:'Outfit',sans-serif;font-size:13px;padding:11px;border-radius:12px;cursor:pointer;margin-top:8px;}
+.empty-state{text-align:center;padding:20px;color:var(--muted);font-size:13px;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:flex-end;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;animation:slideUp 0.3s ease;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:16px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.field input,.field select{width:100%;background:#f9fafb;border:1px solid var(--border);color:var(--text);font-family:'Outfit',sans-serif;font-size:15px;padding:12px;border-radius:12px;outline:none;}
+.field input:focus{border-color:#f59e0b;}
+.modal-btns{display:flex;gap:10px;margin-top:16px;}
+.btn-cancel{flex:1;background:#f3f4f6;border:none;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;padding:13px;border-radius:12px;cursor:pointer;}
+.btn-confirm{flex:2;background:#f59e0b;border:none;color:#000;font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;padding:13px;border-radius:12px;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="brand">ALL Templates</span>
+  <button class="reset-btn" onclick="resetAll()">🔄 Réinitialiser</button>
+</div>
+<div class="header">
+  <h1>Mes <span>Habitudes</span></h1>
+  <p style="color:rgba(255,255,255,0.5);font-size:13px;">Coche chaque journée. Construis ta discipline.</p>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-num" id="statStreak">0</div><div class="stat-lbl">Jours de suite</div></div>
+    <div class="stat-box"><div class="stat-num" id="statPct">0%</div><div class="stat-lbl">Complétion</div></div>
+    <div class="stat-box"><div class="stat-num" id="statCount">0</div><div class="stat-lbl">Habitudes actives</div></div>
+  </div>
+</div>
+<div class="main">
+  <div class="month-nav">
+    <div class="month-title" id="monthTitle">Mai 2026</div>
+    <div class="nav-btns">
+      <button class="nav-btn" onclick="changeMonth(-1)">←</button>
+      <button class="nav-btn" onclick="changeMonth(1)">→</button>
+    </div>
+  </div>
+  <div id="habitsContainer"><div class="empty-state">Aucune habitude. Appuyez sur + Ajouter.</div></div>
+  <button class="add-btn" onclick="openModal()">+ Ajouter une habitude</button>
+</div>
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title">Nouvelle habitude</div>
+    <div class="field"><label>Nom</label><input id="hName" placeholder="Ex: Sport 30 min"></div>
+    <div class="field"><label>Objectif quotidien</label><input id="hGoal" placeholder="Ex: 30 min par jour"></div>
+    <div class="field"><label>Emoji icône</label><input id="hIcon" placeholder="Ex: 🏃" maxlength="2"></div>
+    <div class="field"><label>Couleur</label>
+      <select id="hColor">
+        <option value="#10b981">Vert</option><option value="#6366f1">Violet</option>
+        <option value="#f59e0b">Orange</option><option value="#ec4899">Rose</option>
+        <option value="#06b6d4">Cyan</option><option value="#ef4444">Rouge</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-confirm" onclick="addHabit()">Ajouter</button>
+    </div>
+  </div>
+</div>
+<script>
+const KEY='habits_v2';
+const dayNames=['L','M','M','J','V','S','D'];
+const monthNames=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+let currentDate=new Date();
+currentDate.setDate(1);
+let data={habits:[]};
+
+function load(){const s=localStorage.getItem(KEY);if(s)data=JSON.parse(s);render();}
+function save(){localStorage.setItem(KEY,JSON.stringify(data));}
+function resetAll(){if(!confirm('Réinitialiser ?'))return;localStorage.removeItem(KEY);data={habits:[]};render();}
+
+function render(){
+  document.getElementById('monthTitle').textContent=monthNames[currentDate.getMonth()]+' '+currentDate.getFullYear();
+  document.getElementById('statCount').textContent=data.habits.length;
+  renderHabits();
+  updateStats();
+}
+
+function updateStats(){
+  if(!data.habits.length){document.getElementById('statStreak').textContent='0';document.getElementById('statPct').textContent='0%';return;}
+  const today=new Date();
+  const todayDay=today.getDate();
+  let totalPossible=0,totalDone=0;
+  data.habits.forEach(h=>{
+    for(let d=1;d<=todayDay;d++){if((h.done||{})[currentDate.getMonth()+'-'+d])totalDone++;}
+    totalPossible+=todayDay;
+  });
+  const pct=totalPossible>0?Math.round(totalDone/totalPossible*100):0;
+  document.getElementById('statPct').textContent=pct+'%';
+}
+
+function renderHabits(){
+  const year=currentDate.getFullYear(),month=currentDate.getMonth();
+  const today=new Date();
+  const todayDay=today.getDate();
+  const isCurrentMonth=today.getMonth()===month&&today.getFullYear()===year;
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const firstDow=new Date(year,month,1).getDay();
+  const offset=firstDow===0?6:firstDow-1;
+  const container=document.getElementById('habitsContainer');
+  if(!data.habits.length){container.innerHTML='<div class="empty-state">Aucune habitude. Appuyez sur + Ajouter.</div>';return;}
+  container.innerHTML=data.habits.map((h,hi)=>{
+    const done=h.done||{};
+    let dayHdr=dayNames.map(d=>`<div class="day-name">${d}</div>`).join('');
+    let cells='';
+    for(let i=0;i<offset;i++)cells+='<div class="day-cell" style="visibility:hidden"></div>';
+    for(let d=1;d<=daysInMonth;d++){
+      const key=month+'-'+d;
+      const isFuture=isCurrentMonth&&d>todayDay;
+      const isDone=!!done[key];
+      const isToday=isCurrentMonth&&d===todayDay;
+      cells+=`<div class="day-cell${isDone?' done':''}${isToday?' today':''}${isFuture?' future':''}" style="background:${isDone?h.color:'#f3f4f6'};color:${isDone?'#fff':'#d1d5db'}${isToday?`;box-shadow:0 0 0 2px ${h.color}`:''}" onclick="${!isFuture?`toggleDay(${hi},${month},${d},this,'${h.color}')`:''}">${d}</div>`;
+    }
+    return `<div class="habit-card"><div class="habit-header"><div class="habit-icon" style="background:${h.color}18;color:${h.color}">${h.icon}</div><div style="flex:1"><div class="habit-name">${h.name}</div><div style="font-size:11px;color:var(--muted)">🎯 ${h.goal}</div></div><div class="habit-streak"><div class="streak-val" style="color:${h.color}">🔥 ${calcStreak(h)}</div><div style="font-size:10px;color:var(--muted)">jours</div></div><button class="del-btn" onclick="delHabit(${hi})">✕</button></div><div class="days-label">${dayHdr}</div><div class="days-grid">${cells}</div></div>`;
+  }).join('');
+}
+
+function calcStreak(h){
+  const done=h.done||{};
+  const today=new Date();
+  let streak=0;
+  for(let d=today.getDate();d>=1;d--){
+    if(done[today.getMonth()+'-'+d])streak++;
+    else break;
+  }
+  return streak;
+}
+
+function toggleDay(hi,month,day,el,color){
+  if(!data.habits[hi].done)data.habits[hi].done={};
+  const key=month+'-'+day;
+  const isDone=!data.habits[hi].done[key];
+  data.habits[hi].done[key]=isDone;
+  el.style.background=isDone?color:'#f3f4f6';
+  el.style.color=isDone?'#fff':'#d1d5db';
+  el.classList.toggle('done',isDone);
+  save();updateStats();
+}
+
+function delHabit(i){data.habits.splice(i,1);save();render();}
+function changeMonth(dir){currentDate.setMonth(currentDate.getMonth()+dir);render();}
+
+function openModal(){document.getElementById('modalOverlay').classList.add('open');}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+function addHabit(){
+  const name=document.getElementById('hName').value||'Nouvelle habitude';
+  const goal=document.getElementById('hGoal').value||'Chaque jour';
+  const icon=document.getElementById('hIcon').value||'⭐';
+  const color=document.getElementById('hColor').value;
+  data.habits.push({name,goal,icon,color,done:{}});
+  save();render();closeModal();
+  document.getElementById('hName').value='';document.getElementById('hGoal').value='';document.getElementById('hIcon').value='';
+}
+document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+load();
+</script>
+</body>
+</html>

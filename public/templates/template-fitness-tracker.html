@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitness Tracker — ALL Templates</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--card:#141414;--card2:#1e1e1e;--red:#ff3b30;--orange:#ff9500;--green:#34c759;--blue:#007aff;--yellow:#ffcc00;--text:#fff;--muted:#666;--border:rgba(255,255,255,0.08);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;padding-bottom:30px;}
+.topbar{background:#141414;border-bottom:1px solid var(--border);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
+.brand{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--orange);text-transform:uppercase;}
+.reset-btn{background:rgba(255,59,48,0.15);border:1px solid rgba(255,59,48,0.3);color:var(--red);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;}
+.header{background:linear-gradient(160deg,#1a0000,#1a0a00,#0a1a00);padding:20px 16px;border-bottom:1px solid var(--border);}
+.header h1{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px;margin-bottom:4px;}
+.header h1 span{color:var(--red);}
+.header p{color:var(--muted);font-size:13px;margin-bottom:14px;}
+.rings-row{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px;}
+.rings-row::-webkit-scrollbar{display:none;}
+.ring-card{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px;padding:12px 14px;flex-shrink:0;display:flex;align-items:center;gap:10px;}
+.ring-info .ring-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;}
+.ring-info .ring-val{font-size:14px;font-weight:700;}
+svg.ring{transform:rotate(-90deg);flex-shrink:0;}
+.main{padding:16px;}
+.section-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.workout-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px;}
+.workout-meta-row{display:flex;gap:10px;margin-bottom:14px;}
+.meta-item{background:var(--card2);border-radius:10px;padding:10px 14px;text-align:center;flex:1;}
+.meta-val{font-size:20px;font-weight:700;}
+.meta-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.exercise-list{display:flex;flex-direction:column;gap:8px;}
+.exercise-item{background:var(--card2);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.ex-info{flex:1;}
+.ex-name{font-size:13px;font-weight:600;margin-bottom:4px;}
+.ex-meta{font-size:11px;color:var(--muted);}
+.set-circles{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+.set-circle{width:30px;height:30px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;cursor:pointer;transition:all 0.2s;user-select:none;}
+.set-circle.done{background:var(--green);border-color:var(--green);color:#000;}
+.del-btn{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:2px;}
+.del-btn:hover{color:var(--red);}
+.add-btn{width:100%;background:transparent;border:1px dashed var(--border);color:var(--orange);font-family:'DM Sans',sans-serif;font-size:13px;padding:11px;border-radius:12px;cursor:pointer;margin-top:8px;}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px;}
+.macro-row{display:flex;gap:10px;margin-bottom:14px;}
+.macro-item{flex:1;background:var(--card2);border-radius:12px;padding:12px;text-align:center;}
+.macro-val{font-size:20px;font-weight:700;margin-bottom:2px;}
+.macro-lbl{font-size:10px;color:var(--muted);}
+.macro-bar{height:4px;background:rgba(255,255,255,0.08);border-radius:100px;margin-top:8px;overflow:hidden;}
+.macro-fill{height:100%;border-radius:100px;}
+.meal-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;gap:8px;}
+.meal-item:last-child{border-bottom:none;}
+.meal-name{flex:1;}
+.meal-cals{font-weight:600;color:var(--orange);white-space:nowrap;}
+.empty-state{text-align:center;padding:20px;color:var(--muted);font-size:13px;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;align-items:flex-end;}
+.modal-overlay.open{display:flex;}
+.modal{background:#1a1a1a;border-radius:20px 20px 0 0;border-top:1px solid var(--border);padding:20px 16px 36px;width:100%;animation:slideUp 0.3s ease;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:16px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.field input,.field select{width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;padding:12px;border-radius:12px;outline:none;}
+.field input:focus{border-color:var(--orange);}
+.modal-btns{display:flex;gap:10px;margin-top:16px;}
+.btn-cancel{flex:1;background:var(--card2);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:13px;border-radius:12px;cursor:pointer;}
+.btn-confirm{flex:2;background:var(--orange);border:none;color:#000;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;padding:13px;border-radius:12px;cursor:pointer;}
+[contenteditable]{outline:none;cursor:text;}
+[contenteditable]:focus{background:rgba(255,255,255,0.06);border-radius:4px;padding:1px 3px;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="brand">ALL Templates</span>
+  <button class="reset-btn" onclick="resetAll()">🔄 Réinitialiser</button>
+</div>
+<div class="header">
+  <h1>Mon <span>Entraînement</span></h1>
+  <p>Suis tes séances, nutrition et progression.</p>
+  <div class="rings-row">
+    <div class="ring-card">
+      <svg class="ring" width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" fill="none" stroke="#1a1a1a" stroke-width="6"/><circle cx="24" cy="24" r="18" fill="none" stroke="#ff3b30" stroke-width="6" stroke-dasharray="113" stroke-dashoffset="25" stroke-linecap="round"/></svg>
+      <div class="ring-info"><div class="ring-label">Calories</div><div class="ring-val" style="color:var(--red)" contenteditable data-key="calories" onblur="saveField(this)">0 / 2000</div></div>
+    </div>
+    <div class="ring-card">
+      <svg class="ring" width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" fill="none" stroke="#1a1a1a" stroke-width="6"/><circle cx="24" cy="24" r="18" fill="none" stroke="#ff9500" stroke-width="6" stroke-dasharray="113" stroke-dashoffset="40" stroke-linecap="round"/></svg>
+      <div class="ring-info"><div class="ring-label">Exercice</div><div class="ring-val" style="color:var(--orange)" contenteditable data-key="exercice" onblur="saveField(this)">0 / 60 min</div></div>
+    </div>
+    <div class="ring-card">
+      <div class="ring-info"><div class="ring-label">Poids actuel</div><div class="ring-val" style="color:var(--green)" contenteditable data-key="poids" onblur="saveField(this)">0 kg</div></div>
+    </div>
+    <div class="ring-card">
+      <div class="ring-info"><div class="ring-label">Pas aujourd'hui</div><div class="ring-val" style="color:var(--blue)" contenteditable data-key="pas" onblur="saveField(this)">0</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="section-title">💪 Séance du jour</div>
+  <div class="workout-card">
+    <div style="font-size:15px;font-weight:700;margin-bottom:12px;" contenteditable data-key="seanceName" onblur="saveField(this)">🏋️ Nom de la séance</div>
+    <div class="workout-meta-row">
+      <div class="meta-item"><div class="meta-val" style="color:var(--orange)" contenteditable data-key="seanceDuree" onblur="saveField(this)">0'</div><div class="meta-lbl">Durée</div></div>
+      <div class="meta-item"><div class="meta-val" style="color:var(--red)" contenteditable data-key="seanceKcal" onblur="saveField(this)">0</div><div class="meta-lbl">Kcal</div></div>
+      <div class="meta-item"><div class="meta-val" style="color:var(--green)" id="exCount">0</div><div class="meta-lbl">Exercices</div></div>
+    </div>
+    <div class="exercise-list" id="exerciseList"><div class="empty-state">Aucun exercice. Appuyez sur + Ajouter.</div></div>
+    <button class="add-btn" onclick="openModal('exercise')">+ Ajouter un exercice</button>
+  </div>
+
+  <div class="section-title">🥗 Nutrition du jour</div>
+  <div class="panel">
+    <div class="macro-row">
+      <div class="macro-item"><div class="macro-val" style="color:var(--blue)" contenteditable data-key="proteines" onblur="saveField(this)">0g</div><div class="macro-lbl">Protéines</div><div class="macro-bar"><div class="macro-fill" style="width:0%;background:var(--blue)"></div></div></div>
+      <div class="macro-item"><div class="macro-val" style="color:var(--orange)" contenteditable data-key="glucides" onblur="saveField(this)">0g</div><div class="macro-lbl">Glucides</div><div class="macro-bar"><div class="macro-fill" style="width:0%;background:var(--orange)"></div></div></div>
+      <div class="macro-item"><div class="macro-val" style="color:var(--yellow)" contenteditable data-key="lipides" onblur="saveField(this)">0g</div><div class="macro-lbl">Lipides</div><div class="macro-bar"><div class="macro-fill" style="width:0%;background:var(--yellow)"></div></div></div>
+    </div>
+    <div id="mealList"><div class="empty-state">Aucun repas. Appuyez sur + Ajouter.</div></div>
+    <button class="add-btn" onclick="openModal('meal')">+ Ajouter un repas</button>
+  </div>
+
+  <div class="section-title">⚖️ Suivi du poids</div>
+  <div class="panel">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div style="background:var(--card2);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--red)" contenteditable data-key="poidsDepart" onblur="saveField(this)">0 kg</div><div style="font-size:11px;color:var(--muted)">Poids de départ</div></div>
+      <div style="background:var(--card2);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--green)" contenteditable data-key="poidsObjectif" onblur="saveField(this)">0 kg</div><div style="font-size:11px;color:var(--muted)">Objectif</div></div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--muted);text-align:center" contenteditable data-key="poidsNote" onblur="saveField(this)">Notez votre progression ici...</div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<div class="footer" style="text-align:center;padding:20px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;">Créé avec <strong style="color:var(--red)">ALL Templates</strong> · Interactif · Modifiable · Mobile</div>
+
+<script>
+const KEY='fitness_v2';
+let mode='exercise';
+let data={
+  calories:'0 / 2000',exercice:'0 / 60 min',poids:'0 kg',pas:'0',
+  seanceName:'🏋️ Nom de la séance',seanceDuree:"0'",seanceKcal:'0',
+  proteines:'0g',glucides:'0g',lipides:'0g',
+  poidsDepart:'0 kg',poidsObjectif:'0 kg',poidsNote:'Notez votre progression ici...',
+  exercises:[],meals:[]
+};
+
+function load(){const s=localStorage.getItem(KEY);if(s)data=JSON.parse(s);render();}
+function save(){localStorage.setItem(KEY,JSON.stringify(data));}
+function saveField(el){data[el.dataset.key]=el.textContent;save();}
+
+function resetAll(){
+  if(!confirm('Réinitialiser complètement ce template ?'))return;
+  localStorage.removeItem(KEY);
+  data={calories:'0 / 2000',exercice:'0 / 60 min',poids:'0 kg',pas:'0',seanceName:'🏋️ Nom de la séance',seanceDuree:"0'",seanceKcal:'0',proteines:'0g',glucides:'0g',lipides:'0g',poidsDepart:'0 kg',poidsObjectif:'0 kg',poidsNote:'Notez votre progression ici...',exercises:[],meals:[]};
+  render();
+}
+
+function render(){
+  const fields=['calories','exercice','poids','pas','seanceName','seanceDuree','seanceKcal','proteines','glucides','lipides','poidsDepart','poidsObjectif','poidsNote'];
+  fields.forEach(k=>{const el=document.querySelector(`[data-key="${k}"]`);if(el)el.textContent=data[k];});
+  renderExercises();renderMeals();
+}
+
+function renderExercises(){
+  const list=document.getElementById('exerciseList');
+  document.getElementById('exCount').textContent=data.exercises.length;
+  if(!data.exercises.length){list.innerHTML='<div class="empty-state">Aucun exercice. Appuyez sur + Ajouter.</div>';return;}
+  list.innerHTML=data.exercises.map((ex,i)=>`
+    <div class="exercise-item">
+      <div class="ex-info">
+        <div class="ex-name">${ex.name}</div>
+        <div class="ex-meta">${ex.sets} · ${ex.weight}</div>
+        <div class="set-circles">${Array.from({length:ex.nbSets},(_, j)=>`<div class="set-circle ${ex.done&&ex.done[j]?'done':''}" onclick="toggleSet(${i},${j})">${ex.done&&ex.done[j]?'✓':(j+1)}</div>`).join('')}</div>
+      </div>
+      <button class="del-btn" onclick="delExercise(${i})">✕</button>
+    </div>`).join('');
+}
+
+function toggleSet(ei,si){
+  if(!data.exercises[ei].done)data.exercises[ei].done=[];
+  data.exercises[ei].done[si]=!data.exercises[ei].done[si];
+  save();renderExercises();
+}
+function delExercise(i){data.exercises.splice(i,1);save();renderExercises();}
+
+function renderMeals(){
+  const list=document.getElementById('mealList');
+  if(!data.meals.length){list.innerHTML='<div class="empty-state">Aucun repas. Appuyez sur + Ajouter.</div>';return;}
+  list.innerHTML=data.meals.map((m,i)=>`
+    <div class="meal-item">
+      <div class="meal-name">${m.name}</div>
+      <div class="meal-cals">${m.cals} kcal</div>
+      <button class="del-btn" onclick="delMeal(${i})">✕</button>
+    </div>`).join('');
+}
+function delMeal(i){data.meals.splice(i,1);save();renderMeals();}
+
+function openModal(m){
+  mode=m;
+  const c=document.getElementById('modalContent');
+  if(m==='exercise'){
+    c.innerHTML=`<div class="modal-title">Nouvel exercice</div>
+      <div class="field"><label>Exercice</label><input type="text" id="f1" placeholder="Ex: Squat"></div>
+      <div class="field"><label>Séries × Reps</label><input type="text" id="f2" placeholder="Ex: 4 × 8"></div>
+      <div class="field"><label>Charge</label><input type="text" id="f3" placeholder="Ex: 80 kg"></div>
+      <div class="field"><label>Nombre de séries</label><input type="number" id="f4" value="3" min="1" max="10"></div>
+      <div class="modal-btns"><button class="btn-cancel" onclick="closeModal()">Annuler</button><button class="btn-confirm" onclick="confirmModal()">Ajouter</button></div>`;
+  } else {
+    c.innerHTML=`<div class="modal-title">Nouveau repas</div>
+      <div class="field"><label>Repas</label><input type="text" id="f1" placeholder="Ex: Déjeuner - Riz + Poulet"></div>
+      <div class="field"><label>Calories</label><input type="number" id="f2" placeholder="0"></div>
+      <div class="modal-btns"><button class="btn-cancel" onclick="closeModal()">Annuler</button><button class="btn-confirm" onclick="confirmModal()">Ajouter</button></div>`;
+  }
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+
+function confirmModal(){
+  if(mode==='exercise'){
+    const name=document.getElementById('f1').value||'Exercice';
+    const sets=document.getElementById('f2').value||'3 × 10';
+    const weight=document.getElementById('f3').value||'—';
+    const nbSets=parseInt(document.getElementById('f4').value)||3;
+    data.exercises.push({name,sets,weight,nbSets,done:[]});
+    save();renderExercises();
+  } else {
+    const name=document.getElementById('f1').value||'Repas';
+    const cals=parseInt(document.getElementById('f2').value)||0;
+    data.meals.push({name,cals});
+    save();renderMeals();
+  }
+  closeModal();
+}
+
+document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+load();
+</script>
+</body>
+</html>

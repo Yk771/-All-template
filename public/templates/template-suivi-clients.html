@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>suivi-clients — ALL Templates</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--card:#161b22;--card2:#21262d;--accent:#2dd4bf;--text:#e6edf3;--muted:#7d8590;--border:rgba(255,255,255,0.08);--red:#f87171;--green:#4ade80;--orange:#fb923c;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;padding-bottom:30px;}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
+.brand{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--accent);text-transform:uppercase;}
+.reset-btn{background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.3);color:var(--red);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;}
+.header{background:linear-gradient(160deg,#0d2137,#0d1a2a);padding:20px 16px;border-bottom:1px solid var(--border);}
+.header h1{font-size:26px;font-weight:700;margin-bottom:4px;}
+.header h1 span{color:var(--accent);}
+.header p{color:var(--muted);font-size:13px;}
+.main{padding:16px;}
+.section-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.item-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;}
+.item-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;}
+.item-title{font-size:14px;font-weight:700;}
+.item-sub{font-size:12px;color:var(--muted);}
+.item-amount{font-size:14px;font-weight:700;color:var(--accent);white-space:nowrap;}
+.del-btn{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;}
+.del-btn:hover{color:var(--red);}
+.check-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;font-size:13px;}
+.check-item:last-child{border-bottom:none;}
+.cb{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.cb.done{background:var(--accent);border-color:var(--accent);}
+.cb.done::after{content:'✓';font-size:10px;color:#000;font-weight:700;}
+.check-item.done span{text-decoration:line-through;color:var(--muted);}
+.notes-area{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:14px;min-height:80px;font-size:13px;color:var(--muted);font-family:'DM Sans',sans-serif;width:100%;outline:none;line-height:1.7;resize:none;}
+.notes-area:focus{border-color:var(--accent);color:var(--text);}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.kpi-val{font-size:20px;font-weight:700;margin-bottom:2px;}
+.kpi-lbl{font-size:11px;color:var(--muted);}
+.chips-row{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px;margin-top:14px;}
+.chips-row::-webkit-scrollbar{display:none;}
+.info-chip{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:10px 14px;flex-shrink:0;}
+.chip-label{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px;}
+.chip-val{font-size:13px;font-weight:600;}
+.add-btn{width:100%;background:transparent;border:1px dashed var(--border);color:var(--accent);font-family:'DM Sans',sans-serif;font-size:13px;padding:11px;border-radius:12px;cursor:pointer;margin-top:8px;}
+.empty-state{text-align:center;padding:20px;color:var(--muted);font-size:13px;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;align-items:flex-end;}
+.modal-overlay.open{display:flex;}
+.modal{background:#1a1f2a;border-radius:20px 20px 0 0;border-top:1px solid var(--border);padding:20px 16px 36px;width:100%;animation:slideUp 0.3s ease;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:16px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.field input,.field select,.field textarea{width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;padding:12px;border-radius:12px;outline:none;}
+.field input:focus{border-color:var(--accent);}
+.modal-btns{display:flex;gap:10px;margin-top:16px;}
+.btn-cancel{flex:1;background:var(--card2);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:13px;border-radius:12px;cursor:pointer;}
+.btn-confirm{flex:2;background:var(--accent);border:none;color:#000;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;padding:13px;border-radius:12px;cursor:pointer;}
+[contenteditable]{outline:none;cursor:text;}
+[contenteditable]:focus{background:rgba(255,255,255,0.05);border-radius:4px;padding:1px 3px;}
+.footer{text-align:center;padding:20px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;}
+.footer strong{color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="brand">ALL Templates</span>
+  <button class="reset-btn" onclick="resetAll()">🔄 Réinitialiser</button>
+</div>
+<div class="header">
+  <h1>Template <span>suivi-clients</span></h1>
+  <p>Toutes les données sont modifiables. Appuyez pour éditer.</p>
+</div>
+<div class="main">
+  <div class="section-title">📋 Mes éléments</div>
+  <div id="itemList"><div class="empty-state">Vide. Appuyez sur + Ajouter.</div></div>
+  <button class="add-btn" onclick="openModal()">+ Ajouter</button>
+
+  <div class="section-title" style="margin-top:16px;">✅ Checklist</div>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;" id="checkList">
+    <div class="empty-state">Aucune tâche. Appuyez sur + Ajouter.</div>
+  </div>
+  <button class="add-btn" onclick="addCheck()">+ Ajouter une tâche</button>
+
+  <div class="section-title" style="margin-top:16px;">📝 Notes</div>
+  <textarea class="notes-area" id="notesArea" placeholder="Vos notes ici..." oninput="saveNotes()"></textarea>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title">Nouvel élément</div>
+    <div class="field"><label>Titre</label><input id="f1" placeholder="Titre"></div>
+    <div class="field"><label>Détail / Sous-titre</label><input id="f2" placeholder="Description"></div>
+    <div class="field"><label>Montant / Valeur</label><input id="f3" placeholder="Ex: 100€"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-confirm" onclick="confirmModal()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">Créé avec <strong>ALL Templates</strong> · Interactif · Modifiable · Mobile</div>
+
+<script>
+const KEY='tpl_suivi-clients';
+let data={items:[],checks:[],notes:''};
+function load(){const s=localStorage.getItem(KEY);if(s)data=JSON.parse(s);render();}
+function save(){localStorage.setItem(KEY,JSON.stringify(data));}
+function resetAll(){if(!confirm('Réinitialiser ?'))return;localStorage.removeItem(KEY);data={items:[],checks:[],notes:''};render();}
+function render(){renderItems();renderChecks();document.getElementById('notesArea').value=data.notes;}
+function renderItems(){
+  const l=document.getElementById('itemList');
+  if(!data.items.length){l.innerHTML='<div class="empty-state">Vide. Appuyez sur + Ajouter.</div>';return;}
+  l.innerHTML=data.items.map((it,i)=>`<div class="item-card"><div class="item-header"><div><div class="item-title">${it.title}</div><div class="item-sub">${it.sub}</div></div><div style="display:flex;align-items:center;gap:8px;"><span class="item-amount">${it.amount}</span><button class="del-btn" onclick="delItem(${i})">✕</button></div></div></div>`).join('');
+}
+function renderChecks(){
+  const l=document.getElementById('checkList');
+  if(!data.checks.length){l.innerHTML='<div class="empty-state">Aucune tâche.</div>';return;}
+  l.innerHTML=data.checks.map((c,i)=>`<div class="check-item ${c.done?'done':''}" onclick="toggleCheck(${i})"><div class="cb ${c.done?'done':''}"></div><span>${c.text}</span><button class="del-btn" onclick="event.stopPropagation();delCheck(${i})">✕</button></div>`).join('');
+}
+function delItem(i){data.items.splice(i,1);save();renderItems();}
+function toggleCheck(i){data.checks[i].done=!data.checks[i].done;save();renderChecks();}
+function delCheck(i){data.checks.splice(i,1);save();renderChecks();}
+function saveNotes(){data.notes=document.getElementById('notesArea').value;save();}
+function addCheck(){
+  const txt=prompt('Nouvelle tâche :');
+  if(txt){data.checks.push({text:txt,done:false});save();renderChecks();}
+}
+function openModal(){document.getElementById('modalOverlay').classList.add('open');}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+function confirmModal(){
+  const title=document.getElementById('f1').value||'Élément';
+  const sub=document.getElementById('f2').value||'';
+  const amount=document.getElementById('f3').value||'';
+  data.items.push({title,sub,amount});save();renderItems();closeModal();
+  ['f1','f2','f3'].forEach(id=>document.getElementById(id).value='');
+}
+document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+load();
+</script>
+</body>
+</html>

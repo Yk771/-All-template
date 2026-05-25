@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget Mensuel — ALL Templates</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--surface:#13131a;--card:#1a1a24;--border:#2a2a3a;--accent:#c8f135;--accent2:#7b5ea7;--text:#f0f0f5;--muted:#6b6b80;--red:#ff4d6d;--green:#c8f135;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;padding-bottom:80px;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
+.brand{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--accent);text-transform:uppercase;}
+.reset-btn{background:rgba(255,77,109,0.15);border:1px solid rgba(255,77,109,0.3);color:#ff4d6d;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px 14px;}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.month-selector{background:var(--card);border:1px solid var(--border);color:var(--text);font-family:'Syne',sans-serif;font-size:13px;padding:6px 12px;border-radius:8px;outline:none;}
+.header-title{font-size:22px;font-weight:800;letter-spacing:-0.5px;}
+.balance-hero{margin:16px;background:linear-gradient(135deg,#1a1a24,#13131a);border:1px solid var(--border);border-radius:20px;padding:24px;position:relative;overflow:hidden;}
+.balance-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:150px;height:150px;background:var(--accent);opacity:0.05;border-radius:50%;}
+.balance-label{font-size:10px;font-weight:600;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+.balance-amount{font-size:44px;font-weight:800;letter-spacing:-2px;color:var(--accent);font-family:'DM Mono',monospace;margin-bottom:4px;}
+.balance-sub{font-size:12px;color:var(--muted);}
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px 16px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;}
+.stat-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.stat-amount{font-size:22px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:-1px;}
+.stat-amount.green{color:var(--green);}
+.stat-amount.red{color:var(--red);}
+.stat-bar{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden;}
+.stat-bar-fill{height:100%;border-radius:2px;}
+.stat-bar-fill.green{background:var(--green);}
+.stat-bar-fill.red{background:var(--red);}
+.section{margin:0 16px 16px;}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.section-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.add-btn{background:var(--accent);color:#0a0a0f;border:none;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;}
+.goal-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.goal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.goal-name{font-size:14px;font-weight:700;}
+.goal-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.goal-pct{font-size:20px;font-weight:800;color:var(--accent);font-family:'DM Mono',monospace;}
+.goal-progress{height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.goal-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:3px;transition:width 0.4s;}
+.transaction{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.t-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.t-icon.income{background:rgba(200,241,53,0.12);}
+.t-icon.expense{background:rgba(255,77,109,0.12);}
+.t-icon.saving{background:rgba(123,94,167,0.12);}
+.t-info{flex:1;min-width:0;}
+.t-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.t-cat{font-size:11px;color:var(--muted);}
+.t-amount{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;white-space:nowrap;}
+.t-amount.pos{color:var(--green);}
+.t-amount.neg{color:var(--red);}
+.t-amount.sav{color:var(--accent2);}
+.t-del{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px;flex-shrink:0;}
+.t-del:hover{color:var(--red);}
+.empty-state{text-align:center;padding:30px 16px;color:var(--muted);font-size:13px;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;align-items:flex-end;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;border-top:1px solid var(--border);padding:20px 16px 36px;width:100%;animation:slideUp 0.3s ease;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:16px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.field input,.field select{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);font-family:'Syne',sans-serif;font-size:15px;padding:12px 14px;border-radius:12px;outline:none;}
+.field input:focus,.field select:focus{border-color:var(--accent);}
+.modal-actions{display:flex;gap:10px;margin-top:16px;}
+.btn-cancel{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;padding:13px;border-radius:12px;cursor:pointer;}
+.btn-confirm{flex:2;background:var(--accent);border:none;color:#0a0a0f;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;padding:13px;border-radius:12px;cursor:pointer;}
+[contenteditable]{outline:none;cursor:text;}
+[contenteditable]:focus{background:rgba(255,255,255,0.06);border-radius:4px;padding:1px 3px;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="brand">ALL Templates</span>
+  <button class="reset-btn" onclick="resetAll()">🔄 Réinitialiser</button>
+</div>
+<div class="header">
+  <div class="header-top">
+    <span style="font-size:10px;font-weight:700;letter-spacing:3px;color:var(--accent);text-transform:uppercase;">Budget</span>
+    <select class="month-selector" id="monthSel" onchange="save()">
+      <option>Janvier</option><option>Février</option><option>Mars</option><option>Avril</option>
+      <option>Mai</option><option>Juin</option><option>Juillet</option><option>Août</option>
+      <option>Septembre</option><option>Octobre</option><option>Novembre</option><option>Décembre</option>
+    </select>
+  </div>
+  <div class="header-title">Budget Mensuel</div>
+</div>
+
+<div class="balance-hero">
+  <div class="balance-label">Solde disponible</div>
+  <div class="balance-amount" id="balanceAmt">0 €</div>
+  <div class="balance-sub">Mis à jour automatiquement</div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">Revenus</div>
+    <div class="stat-amount green" id="incomeDisplay">0 €</div>
+    <div class="stat-bar"><div class="stat-bar-fill green" style="width:100%"></div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Dépenses</div>
+    <div class="stat-amount red" id="expenseDisplay">0 €</div>
+    <div class="stat-bar"><div class="stat-bar-fill red" id="expenseBar" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header"><span class="section-title">Objectif Épargne</span></div>
+  <div class="goal-card">
+    <div class="goal-header">
+      <div>
+        <div class="goal-name" contenteditable data-key="goalName" onblur="saveField(this)">🎯 Mon objectif épargne</div>
+        <div class="goal-sub" contenteditable data-key="goalSub" onblur="saveField(this)">Cliquez pour modifier</div>
+      </div>
+      <div class="goal-pct" contenteditable data-key="goalPct" onblur="saveField(this)">0%</div>
+    </div>
+    <div class="goal-progress"><div class="goal-fill" id="goalFill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">Transactions</span>
+    <button class="add-btn" onclick="openModal()">+ Ajouter</button>
+  </div>
+  <div id="transactionList"><div class="empty-state">Aucune transaction. Appuyez sur + Ajouter.</div></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title">Nouvelle transaction</div>
+    <div class="field"><label>Libellé</label><input type="text" id="inputName" placeholder="Ex: Salaire, Loyer..."></div>
+    <div class="field"><label>Montant (€)</label><input type="number" id="inputAmount" placeholder="0"></div>
+    <div class="field"><label>Type</label>
+      <select id="inputType">
+        <option value="income">💼 Revenu</option>
+        <option value="expense">💸 Dépense</option>
+        <option value="saving">🏦 Épargne</option>
+      </select>
+    </div>
+    <div class="field"><label>Catégorie</label>
+      <select id="inputCat">
+        <option>Alimentation</option><option>Logement</option><option>Transport</option>
+        <option>Abonnements</option><option>Loisirs</option><option>Shopping</option>
+        <option>Factures</option><option>Revenus</option><option>Épargne</option><option>Autre</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-confirm" onclick="addTransaction()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY='budget_v2';
+let data={month:'Mai',goalName:'🎯 Mon objectif épargne',goalSub:'Cliquez pour modifier',goalPct:'0%',transactions:[]};
+
+function load(){
+  const s=localStorage.getItem(KEY);
+  if(s){data=JSON.parse(s);}
+  render();
+}
+
+function save(){
+  data.month=document.getElementById('monthSel').value;
+  localStorage.setItem(KEY,JSON.stringify(data));
+}
+
+function saveField(el){
+  data[el.dataset.key]=el.textContent;
+  const pct=parseInt(data.goalPct)||0;
+  document.getElementById('goalFill').style.width=Math.min(pct,100)+'%';
+  save();
+}
+
+function resetAll(){
+  if(!confirm('Réinitialiser complètement ce template ?')) return;
+  localStorage.removeItem(KEY);
+  data={month:'Mai',goalName:'🎯 Mon objectif épargne',goalSub:'Cliquez pour modifier',goalPct:'0%',transactions:[]};
+  render();
+}
+
+function render(){
+  // Month
+  const sel=document.getElementById('monthSel');
+  const months=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  sel.selectedIndex=months.indexOf(data.month)||0;
+  // Fields
+  document.querySelector('[data-key="goalName"]').textContent=data.goalName;
+  document.querySelector('[data-key="goalSub"]').textContent=data.goalSub;
+  document.querySelector('[data-key="goalPct"]').textContent=data.goalPct;
+  const pct=parseInt(data.goalPct)||0;
+  document.getElementById('goalFill').style.width=Math.min(pct,100)+'%';
+  // Transactions
+  renderTransactions();
+  updateStats();
+}
+
+function renderTransactions(){
+  const list=document.getElementById('transactionList');
+  if(!data.transactions.length){list.innerHTML='<div class="empty-state">Aucune transaction. Appuyez sur + Ajouter.</div>';return;}
+  list.innerHTML=data.transactions.map((t,i)=>`
+    <div class="transaction">
+      <div class="t-icon ${t.type}">${t.type==='income'?'💼':t.type==='saving'?'🏦':'💸'}</div>
+      <div class="t-info">
+        <div class="t-name">${t.name}</div>
+        <div class="t-cat">${t.cat}</div>
+      </div>
+      <div class="t-amount ${t.type==='income'?'pos':t.type==='saving'?'sav':'neg'}">${t.type==='income'?'+':'−'}${parseFloat(t.amount).toLocaleString('fr-FR')} €</div>
+      <button class="t-del" onclick="deleteTransaction(${i})">✕</button>
+    </div>`).join('');
+}
+
+function updateStats(){
+  const income=data.transactions.filter(t=>t.type==='income').reduce((s,t)=>s+parseFloat(t.amount),0);
+  const expenses=data.transactions.filter(t=>t.type!=='income').reduce((s,t)=>s+parseFloat(t.amount),0);
+  const bal=income-expenses;
+  document.getElementById('balanceAmt').textContent=(bal>=0?'+':'')+bal.toLocaleString('fr-FR')+' €';
+  document.getElementById('incomeDisplay').textContent=income.toLocaleString('fr-FR')+' €';
+  document.getElementById('expenseDisplay').textContent=expenses.toLocaleString('fr-FR')+' €';
+  document.getElementById('expenseBar').style.width=income>0?Math.min(100,Math.round(expenses/income*100))+'%':'0%';
+}
+
+function deleteTransaction(i){
+  data.transactions.splice(i,1);
+  save();renderTransactions();updateStats();
+}
+
+function openModal(){document.getElementById('modalOverlay').classList.add('open');}
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.getElementById('inputName').value='';
+  document.getElementById('inputAmount').value='';
+}
+
+function addTransaction(){
+  const name=document.getElementById('inputName').value||'Transaction';
+  const amount=parseFloat(document.getElementById('inputAmount').value)||0;
+  const type=document.getElementById('inputType').value;
+  const cat=document.getElementById('inputCat').value;
+  data.transactions.unshift({name,amount,type,cat});
+  save();renderTransactions();updateStats();closeModal();
+}
+
+document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+load();
+</script>
+</body>
+</html>
