@@ -39,9 +39,9 @@ export default function App() {
     }, 3500);
   };
 
-  const handleAddToCart = (product: Product, selectedVariant: SelectedVariant) => {
-    // Unique ID combining product + variant combination details
-    const uniqueCombinationId = `${product.id}-${JSON.stringify(selectedVariant)}`;
+  const handleAddToCart = (product: Product, selectedVariant: SelectedVariant, customText?: string) => {
+    // Unique ID combining product + variant combination details and customText
+    const uniqueCombinationId = `${product.id}-${JSON.stringify(selectedVariant)}-${customText || ''}`;
 
     setCart((prev) => {
       const existing = prev.find((item) => item.id === uniqueCombinationId);
@@ -53,8 +53,9 @@ export default function App() {
       }
       
       const variantDesc = Object.values(selectedVariant).join(' / ');
-      addToast(`${product.title} (${variantDesc}) a été ajouté à votre panier !`);
-      return [...prev, { id: uniqueCombinationId, product, selectedVariant, quantity: 1 }];
+      const displayTitle = variantDesc ? `${product.title} (${variantDesc})` : product.title;
+      addToast(`${displayTitle} a été ajouté à votre panier !`);
+      return [...prev, { id: uniqueCombinationId, product, selectedVariant, quantity: 1, customText }];
     });
 
     // Auto trigger slide drawer open

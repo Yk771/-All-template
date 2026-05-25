@@ -24,6 +24,7 @@ export interface Product {
   tags: string[];
   inStock: boolean;
   inventoryCount: number;
+  customField?: boolean;
 }
 
 export interface CartItem {
@@ -31,6 +32,7 @@ export interface CartItem {
   product: Product;
   selectedVariant: SelectedVariant;
   quantity: number;
+  customText?: string;
 }
 
 export type SectionType =

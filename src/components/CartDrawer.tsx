@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Plus, Minus, Trash2, ShoppingBag, CreditCard, Sparkles, Shield, RefreshCcw } from 'lucide-react';
 import { CartItem, ThemeSettings } from '../types';
 import { useState } from 'react';
+import { getItemPrice } from '../utils/cartHelper';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -36,7 +37,7 @@ export default function CartDrawer({
   const [city, setCity] = useState('Instant Email Delivery');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const subtotal = cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
+  const subtotal = cart.reduce((total, item) => total + getItemPrice(item) * item.quantity, 0);
   const freeShippingThreshold = 0;
   const isFreeShipping = true;
   const shippingCost = 0;
@@ -227,7 +228,7 @@ export default function CartDrawer({
                                 
                                 <div className="flex items-center gap-2">
                                   <span className="font-semibold text-xs font-sans">
-                                    {(item.product.price * item.quantity).toFixed(2)}€
+                                    {(getItemPrice(item) * item.quantity).toFixed(2)}€
                                   </span>
                                   <button
                                     id={`remove-item-${item.id}`}

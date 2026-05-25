@@ -44,6 +44,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .map((i: { productId: string }) => TEMPLATE_LINKS[i.productId] || '')
       .filter(Boolean)
       .join(',');
+    const variants = items
+      .map((i: { selectedVariant?: Record<string, string> }) => {
+        if (!i.selectedVariant) return 'None';
+        return Object.values(i.selectedVariant).join(' / ') || 'None';
+      })
+      .join(',');
+
+    const customText = items.find((i: { productId: string; customText?: string }) => i.productId === 'prod_12')?.customText || '';
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -51,7 +59,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       mode: 'payment',
       success_url: `${process.env.APP_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.APP_URL}`,
-      metadata: { productIds, templateLinks },
+      metadata: { productIds, templateLinks, variants, customText: customText.substring(0, 480) },
       billing_address_collection: 'auto',
       locale: 'fr',
     });

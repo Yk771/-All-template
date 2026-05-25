@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { CartItem } from '../types';
+import { getItemPrice } from '../utils/cartHelper';
 
 export function useStripeCheckout() {
   const [isLoading, setIsLoading] = useState(false);
@@ -10,12 +11,18 @@ export function useStripeCheckout() {
     setError(null);
 
     try {
-      const items = cart.map((item) => ({
-        productId: item.id.split('-')[0], // ex: prod_1 depuis prod_1-variant
-        title: item.product.title,
-        price: item.product.price,
-        quantity: item.quantity,
-      }));
+      const items = cart.map((item) => {
+        const variantDesc = Object.values(item.selectedVariant).join(' / ');
+        const fullTitle = variantDesc ? `${item.product.title} (${variantDesc})` : item.product.title;
+        return {
+          productId: item.id.split('-')[0], // ex: prod_1 depuis prod_1-variant
+          title: fullTitle,
+          price: getItemPrice(item),
+          quantity: item.quantity,
+          selectedVariant: item.selectedVariant,
+          customText: item.customText || '',
+        };
+      });
 
       const response = await fetch('/api/create-checkout', {
         method: 'POST',

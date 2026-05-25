@@ -3,7 +3,7 @@ import { Product, ShopifySection, ShopifyTheme } from '../types';
 export const PRODUCTS: Product[] = [
   {
     id: 'prod_1',
-    title: 'Template Notion Business Ultime',
+    title: 'Template Notion Business',
     handle: 'template-notion-business-ultime',
     price: 24.99,
     compareAtPrice: 49.0,
@@ -12,7 +12,7 @@ export const PRODUCTS: Product[] = [
     summary: 'Gérez votre activité de A à Z avec rigueur. Inclus : dashboard global, gestion de projets, CRM clients et suivi financier complet.',
     description: 'Le système complet pour piloter votre entreprise en toute sérénité. Ce template haut de gamme regroupe un tableau de bord décisionnel, un suivi complet des revenus et dépenses, un gestionnaire de projet avancé, un CRM clients complet pour suivre vos prospects et contrats, ainsi qu’une zone d’objectifs et tâches quotidiennes.',
     images: [
-      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1000',
+      'https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?auto=format&fit=crop&q=80&w=1000',
       'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=1000'
     ],
     variants: [
@@ -302,6 +302,30 @@ export const PRODUCTS: Product[] = [
     tags: ['Freelance', 'Micro-entreprise', 'Business', 'Notion', 'Productivité'],
     inStock: true,
     inventoryCount: 999,
+  },
+  {
+    id: 'prod_12',
+    title: 'Template Personnalisé sur Mesure',
+    handle: 'template-personnalise-sur-mesure',
+    price: 34.99,
+    compareAtPrice: 69.0,
+    rating: 5.0,
+    reviewCount: 0,
+    summary: 'Tu as une idée précise de l\'outil dont tu as besoin ? Je crée ton template sur mesure selon tes besoins exacts.',
+    description: 'Décris-moi exactement ce que tu veux : organisation, business, finances, suivi, planning... Je conçois ton template 100% personnalisé. Délai de livraison : 24 à 48h après ta commande. Prix unique : 34.99€.',
+    images: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1000'],
+    variants: [],
+    badges: ['Sur mesure'],
+    specs: [
+      { label: 'Délai', value: '24 à 48h après commande' },
+      { label: 'Livraison', value: 'Par email' },
+      { label: 'Révisions', value: '1 révision incluse' },
+      { label: 'Contact', value: 'yaakoubabid77@gmail.com' }
+    ],
+    tags: ['Personnalisé', 'Sur mesure', 'Custom'],
+    inStock: true,
+    inventoryCount: 999,
+    customField: true,
   }
 ];
 
@@ -488,8 +512,8 @@ export const DEFAULT_SECTIONS: ShopifySection[] = [
     name: 'Featured Collection Grid',
     settings: {
       title: 'Explorez l’ensemble de notre catalogue',
-      subtitle: 'Retrouvez nos 11 templates phares d’organisation digitale. Choisissez ceux adaptés à vos projets.',
-      limit: 11,
+      subtitle: 'Retrouvez nos 12 templates phares d’organisation digitale. Choisissez ceux adaptés à vos projets.',
+      limit: 12,
       columns: 3,
       showRating: true,
       showCompareValue: true,

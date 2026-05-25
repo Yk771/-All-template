@@ -35,7 +35,7 @@ interface StorefrontPreviewProps {
   setDeviceMode: (mode: 'desktop' | 'tablet' | 'mobile') => void;
   activeSectionId: string | null;
   setActiveSectionId: (id: string | null) => void;
-  onAddToCart: (product: Product, selectedVariant: SelectedVariant) => void;
+  onAddToCart: (product: Product, selectedVariant: SelectedVariant, customText?: string) => void;
   cartCount: number;
   onOpenCart: () => void;
 }
@@ -61,6 +61,15 @@ export default function StorefrontPreview({
     'Licence d’utilisation': 'Usage Personnel'
   });
   const [previewModalUrl, setPreviewModalUrl] = useState<string | null>(null);
+  const [customDescription, setCustomDescription] = useState('');
+
+  const getProductDisplayPrice = (p: Product) => {
+    return p.price;
+  };
+
+  const getProductDisplayComparePrice = (p: Product) => {
+    return p.compareAtPrice || 0;
+  };
   
   // Custom interactive Accordion sections
   const [expandedTabs, setExpandedTabs] = useState<Record<string, boolean>>({
@@ -77,6 +86,7 @@ export default function StorefrontPreview({
   const handleProductSwitch = (prod: Product) => {
     setSelectedProduct(prod);
     setMainImageUrl(prod.images[0]);
+    setCustomDescription('');
     
     // Set default variant values
     const defaults: SelectedVariant = {};
@@ -497,10 +507,11 @@ export default function StorefrontPreview({
 
       case 'product-showcase':
         const prod = PRODUCTS.find((p) => p.id === sec.settings.productId) || PRODUCTS[0];
-        const comparePrice = prod.compareAtPrice;
+        const showPrice = getProductDisplayPrice(prod);
+        const comparePrice = getProductDisplayComparePrice(prod);
         // Auto compute discount percentage
         const discountPercentage = comparePrice 
-          ? Math.round(((comparePrice - prod.price) / comparePrice) * 100) 
+          ? Math.round(((comparePrice - showPrice) / comparePrice) * 100) 
           : 0;
 
         return (
@@ -575,9 +586,9 @@ export default function StorefrontPreview({
                     {/* Price with CompareAt price option */}
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-2xl font-black font-sans text-gray-900">
-                        {prod.price.toFixed(2)}€
+                        {showPrice.toFixed(2)}€
                       </span>
-                      {comparePrice && (
+                      {comparePrice > 0 && (
                         <span className="text-gray-400 line-through text-md font-sans font-semibold">
                           {comparePrice.toFixed(2)}€
                         </span>
@@ -593,12 +604,64 @@ export default function StorefrontPreview({
                     {prod.summary}
                   </div>
 
+                  {/* Dynamic Variant pickers (excluding licence d'utilisation as per design criteria) */}
+                  {prod.variants.filter((v) => v.name !== 'Licence d’utilisation').length > 0 && (
+                    <div className="space-y-4 font-sans py-2 border-b border-gray-100 pb-4">
+                      {prod.variants
+                        .filter((v) => v.name !== 'Licence d’utilisation')
+                        .map((v) => (
+                          <div key={v.name} className="space-y-1.5">
+                            <span className="text-[11px] font-bold text-gray-450 uppercase tracking-widest block">
+                              {v.name}: <span className="text-zinc-950 font-sans font-black lowercase">{selectedVariants[v.name] || v.values[0]}</span>
+                            </span>
+                            
+                            <div className="flex flex-wrap gap-2">
+                              {v.values.map((val) => {
+                                const isSelected = selectedVariants[v.name] === val;
+                                return (
+                                  <button
+                                    key={val}
+                                    id={`showcase-variant-${v.name}-${val}`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleVariantChange(v.name, val);
+                                    }}
+                                    className={`px-3 py-1.5 text-xs font-semibold rounded border transition-all cursor-pointer ${
+                                      isSelected
+                                        ? 'bg-zinc-950 text-white border-zinc-950 shadow-sm font-bold'
+                                        : 'bg-white border-gray-200 text-gray-700 hover:border-gray-450'
+                                    }`}
+                                  >
+                                    {val}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
 
+                  {prod.id === 'prod_12' && (
+                    <div className="space-y-2 py-4 border-b border-gray-100 mb-2">
+                      <label className="text-xs font-bold text-gray-700 block uppercase tracking-wider">
+                        Décris ton template idéal <span className="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        id="showcase-custom-template-description"
+                        value={customDescription}
+                        onChange={(e) => setCustomDescription(e.target.value)}
+                        placeholder="Ex: Je veux un dashboard pour suivre mes revenus freelance avec un suivi client, des graphiques de progression mensuelle et une section objectifs..."
+                        className="w-full min-h-[120px] p-3 text-xs border border-gray-200 rounded focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 outline-none resize-y font-sans leading-relaxed"
+                      />
+                    </div>
+                  )}
 
                   {/* Interactive Button CTA */}
                   <div className="space-y-2 pt-2">
                     <button
                       id="add-to-cart-showcase-btn"
+                      disabled={prod.id === 'prod_12' && !customDescription.trim()}
                       onClick={(e) => {
                         e.stopPropagation();
                         // ensure default variant selected
@@ -606,16 +669,24 @@ export default function StorefrontPreview({
                         prod.variants.forEach(v => {
                           if (!payload[v.name]) payload[v.name] = v.values[0];
                         });
-                        onAddToCart(prod, payload);
+                        
+                        let finalProduct = prod;
+                        if (prod.id === 'prod_12') {
+                          finalProduct = {
+                            ...prod,
+                            title: `Template Personnalisé — ${customDescription.trim()}`
+                          };
+                        }
+                        onAddToCart(finalProduct, payload, prod.id === 'prod_12' ? customDescription.trim() : undefined);
                       }}
                       style={{
                         backgroundColor: themeSettings.primaryColor,
                         textTransform: themeSettings.uppercaseButtons ? 'uppercase' : 'none',
                       }}
-                      className={`w-full py-3.5 text-xs tracking-wider text-white font-bold transition-all shadow hover:shadow-md hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer ${getRadiusClass('button')}`}
+                      className={`w-full py-3.5 text-xs tracking-wider text-white font-bold transition-all shadow hover:shadow-md hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${getRadiusClass('button')}`}
                     >
                       <ShoppingBag className="w-4 h-4" />
-                      Ajouter au Panier — {prod.price.toFixed(2)}€
+                      Ajouter au Panier — {showPrice.toFixed(2)}€
                     </button>
 
                     <button
@@ -1116,9 +1187,10 @@ export default function StorefrontPreview({
 
   const renderProductView = () => {
     const prod = selectedProduct;
-    const comparePrice = prod.compareAtPrice;
+    const showPrice = getProductDisplayPrice(prod);
+    const comparePrice = getProductDisplayComparePrice(prod);
     const discountPercentage = comparePrice 
-      ? Math.round(((comparePrice - prod.price) / comparePrice) * 100) 
+      ? Math.round(((comparePrice - showPrice) / comparePrice) * 100) 
       : 0;
 
     // Filter recommended related templates
@@ -1205,11 +1277,13 @@ export default function StorefrontPreview({
                 {/* Pricing layout */}
                 <div className="flex items-center gap-2.5 mt-3 border-b border-gray-100 pb-4">
                   <span className="text-3xl font-black text-zinc-900 font-sans">
-                    {prod.price.toFixed(2)}€
+                    {showPrice.toFixed(2)}€
                   </span>
-                  <span className="text-gray-400 line-through text-md font-bold font-sans">
-                    {prod.compareAtPrice.toFixed(2)}€
-                  </span>
+                  {comparePrice > 0 && (
+                    <span className="text-gray-400 line-through text-md font-bold font-sans">
+                      {comparePrice.toFixed(2)}€
+                    </span>
+                  )}
                   <span className="text-[10px] font-extrabold bg-red-50 text-red-600 px-2 py-1 rounded">
                     Remise de {discountPercentage}% incluse
                   </span>
@@ -1225,6 +1299,60 @@ export default function StorefrontPreview({
                 {prod.summary}
               </div>
 
+              {/* Dynamic Variant pickers (excluding licence d'utilisation as per design criteria) */}
+              {prod.variants.filter((v) => v.name !== 'Licence d’utilisation').length > 0 && (
+                <div className="space-y-4 font-sans py-2 border-b border-gray-100 pb-4">
+                  {prod.variants
+                    .filter((v) => v.name !== 'Licence d’utilisation')
+                    .map((v) => (
+                      <div key={v.name} className="space-y-1.5">
+                        <span className="text-[11px] font-bold text-gray-450 uppercase tracking-widest block">
+                          {v.name}: <span className="text-zinc-950 font-sans font-black lowercase">{selectedVariants[v.name] || v.values[0]}</span>
+                        </span>
+                        
+                        <div className="flex flex-wrap gap-2">
+                          {v.values.map((val) => {
+                            const isSelected = selectedVariants[v.name] === val;
+                            return (
+                              <button
+                                key={val}
+                                id={`detail-variant-${v.name}-${val}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleVariantChange(v.name, val);
+                                }}
+                                className={`px-3.5 py-2 text-xs font-semibold rounded border transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-zinc-950 text-white border-zinc-950 shadow-sm font-bold'
+                                    : 'bg-white border-gray-200 text-gray-700 hover:border-gray-450'
+                                }`}
+                              >
+                                {val}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+
+              {/* Saisie personnalisée obligatoire pour prod_12 */}
+              {prod.id === 'prod_12' && (
+                <div className="space-y-2 py-4 border-b border-gray-100">
+                  <label className="text-xs font-bold text-gray-700 block uppercase tracking-wider">
+                    Décris ton template idéal <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    id="custom-template-description"
+                    value={customDescription}
+                    onChange={(e) => setCustomDescription(e.target.value)}
+                    placeholder="Ex: Je veux un dashboard pour suivre mes revenus freelance avec un suivi client, des graphiques de progression mensuelle et une section objectifs..."
+                    className="w-full min-h-[120px] p-3 text-xs border border-gray-200 rounded focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 outline-none resize-y font-sans leading-relaxed"
+                  />
+                </div>
+              )}
+
               {/* Add to action bar */}
               <div className="pt-2 space-y-2">
                 {TEMPLATE_PREVIEWS[prod.id] && (
@@ -1237,19 +1365,28 @@ export default function StorefrontPreview({
                 )}
 
                 <button
+                  disabled={prod.id === 'prod_12' && !customDescription.trim()}
                   onClick={(e) => {
                     e.stopPropagation();
                     const payload: SelectedVariant = {};
                     prod.variants.forEach(v => {
-                      payload[v.name] = v.values[0];
+                      payload[v.name] = selectedVariants[v.name] || v.values[0];
                     });
-                    onAddToCart(prod, payload);
+                    
+                    let finalProduct = prod;
+                    if (prod.id === 'prod_12') {
+                      finalProduct = {
+                        ...prod,
+                        title: `Template Personnalisé — ${customDescription.trim()}`
+                      };
+                    }
+                    onAddToCart(finalProduct, payload, prod.id === 'prod_12' ? customDescription.trim() : undefined);
                   }}
                   style={{ backgroundColor: themeSettings.primaryColor }}
-                  className="w-full py-4 text-xs font-bold uppercase tracking-wider text-white hover:brightness-110 shadow transition-all flex items-center justify-center gap-2 rounded cursor-pointer"
+                  className="w-full py-4 text-xs font-bold uppercase tracking-wider text-white hover:brightness-110 shadow transition-all flex items-center justify-center gap-2 rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ShoppingBag className="w-4 h-4" />
-                  Ajouter au Panier — {prod.price.toFixed(2)}€
+                  Ajouter au Panier — {showPrice.toFixed(2)}€
                 </button>
 
                 <div className="text-[10px] text-gray-400 text-center flex items-center justify-center gap-1 pt-1.5">
