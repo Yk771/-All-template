@@ -1,3 +1,4 @@
+import { useStripeCheckout } from '../hooks/useStripeCheckout';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Plus, Minus, Trash2, ShoppingBag, CreditCard, Sparkles, Shield, RefreshCcw } from 'lucide-react';
 import { CartItem, ThemeSettings } from '../types';
@@ -22,6 +23,7 @@ export default function CartDrawer({
   themeSettings,
   onCheckoutSuccess,
 }: CartDrawerProps) {
+  const { checkout, isLoading: stripeLoading } = useStripeCheckout();
   const [promoCode, setPromoCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; percent: number } | null>(null);
   const [promoError, setPromoError] = useState('');
@@ -62,12 +64,8 @@ export default function CartDrawer({
     } else if (checkoutStep === 'shipping') {
       setCheckoutStep('payment');
     } else {
-      setIsSubmitting(true);
-      setTimeout(() => {
-        setIsSubmitting(false);
-        setCheckoutStep('cart');
-        onCheckoutSuccess();
-      }, 1500);
+      // Stripe paiement réel
+      checkout(cart);
     }
   };
 

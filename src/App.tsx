@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SuccessPage from './pages/SuccessPage';
 import { CheckCircle } from 'lucide-react';
 import { ShopifySection, ThemeSettings, Product, CartItem, SelectedVariant } from './types';
 import { DEFAULT_SECTIONS, THEME_PRESETS } from './data/initialData';
@@ -13,6 +14,11 @@ interface Toast {
 }
 
 export default function App() {
+  // Route page succès après paiement
+  if (window.location.pathname === '/success') {
+    return <SuccessPage />;
+  }
+
   const [sections] = useState<ShopifySection[]>(DEFAULT_SECTIONS);
   const [themeSettings] = useState<ThemeSettings>(THEME_PRESETS.dawn.settings);
 
