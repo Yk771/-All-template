@@ -14,6 +14,20 @@ const ICON_MAP: Record<string, React.ComponentType<any>> = {
   Workflow
 };
 
+const TEMPLATE_PREVIEWS: Record<string, string> = {
+  prod_1: '/templates/template-business-ultime.html',
+  prod_2: '/templates/template-budget-mensuel.html',
+  prod_3: '/templates/template-calendrier-contenu.html',
+  prod_4: '/templates/template-suivi-clients.html',
+  prod_5: '/templates/template-tracker-habitudes.html',
+  prod_6: '/templates/template-planner-voyage.html',
+  prod_7: '/templates/template-fitness-tracker.html',
+  prod_8: '/templates/template-planner-etudiant.html',
+  prod_9: '/templates/template-suivi-investissements.html',
+  prod_10: '/templates/template-wedding-planner.html',
+  prod_11: '/templates/template-freelance-dashboard.html',
+};
+
 interface StorefrontPreviewProps {
   sections: ShopifySection[];
   themeSettings: ThemeSettings;
@@ -46,6 +60,7 @@ export default function StorefrontPreview({
   const [selectedVariants, setSelectedVariants] = useState<SelectedVariant>({
     'Licence d’utilisation': 'Usage Personnel'
   });
+  const [previewModalUrl, setPreviewModalUrl] = useState<string | null>(null);
   
   // Custom interactive Accordion sections
   const [expandedTabs, setExpandedTabs] = useState<Record<string, boolean>>({
@@ -571,10 +586,6 @@ export default function StorefrontPreview({
                         -{discountPercentage}% de réduction immédiate
                       </span>
                     </div>
-
-                    <p className="text-[10px] text-gray-500 font-sans mt-2">
-                      Ou 4 paiements de <b>{(prod.price / 4).toFixed(2)}€</b> sans frais.
-                    </p>
                   </div>
 
                   {/* Summary */}
@@ -582,39 +593,7 @@ export default function StorefrontPreview({
                     {prod.summary}
                   </div>
 
-                  {/* Dynamic Variant pickers */}
-                  <div className="space-y-4 font-sans">
-                    {prod.variants.map((v) => (
-                      <div key={v.name} className="space-y-1.5">
-                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
-                          {v.name}: <span className="text-gray-900 font-sans lowercase font-bold">{selectedVariants[v.name] || v.values[0]}</span>
-                        </span>
-                        
-                        <div className="flex flex-wrap gap-2">
-                          {v.values.map((val) => {
-                            const isSelected = selectedVariants[v.name] === val;
-                            return (
-                              <button
-                                key={val}
-                                id={`variant-picker-${v.name}-${val}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleVariantChange(v.name, val);
-                                }}
-                                className={`px-3 py-1.5 text-xs font-semibold rounded border transition-all cursor-pointer ${
-                                  isSelected
-                                    ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm'
-                                    : 'bg-white border-gray-250 text-gray-750 hover:border-gray-450'
-                                }`}
-                              >
-                                {val}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+
 
                   {/* Interactive Button CTA */}
                   <div className="space-y-2 pt-2">
@@ -1246,44 +1225,23 @@ export default function StorefrontPreview({
                 {prod.summary}
               </div>
 
-              {/* Real variant select checks */}
-              <div className="space-y-4">
-                {prod.variants.map((v) => (
-                  <div key={v.name} className="space-y-1.5 font-sans">
-                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
-                      {v.name}: <span className="text-zinc-900 font-bold lowercase">{selectedVariants[v.name] || v.values[0]}</span>
-                    </span>
-
-                    <div className="flex flex-wrap gap-2">
-                      {v.values.map((val) => {
-                        const isSelected = selectedVariants[v.name] === val;
-                        return (
-                          <button
-                            key={val}
-                            onClick={() => handleVariantChange(v.name, val)}
-                            className={`px-3.5 py-2 text-xs font-semibold rounded border transition-all cursor-pointer ${
-                              isSelected
-                                ? 'bg-zinc-950 text-white border-zinc-950 shadow-sm'
-                                : 'bg-white border-gray-250 text-gray-700 hover:border-gray-400'
-                            }`}
-                          >
-                            {val}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
               {/* Add to action bar */}
               <div className="pt-2 space-y-2">
+                {TEMPLATE_PREVIEWS[prod.id] && (
+                  <button
+                    onClick={() => setPreviewModalUrl(TEMPLATE_PREVIEWS[prod.id])}
+                    className="w-full py-3.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 text-xs font-bold tracking-wider rounded border border-gray-250 transition-colors cursor-pointer text-center flex items-center justify-center gap-2"
+                  >
+                    <span>👁 Aperçu du template</span>
+                  </button>
+                )}
+
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    const payload = { ...selectedVariants };
+                    const payload: SelectedVariant = {};
                     prod.variants.forEach(v => {
-                      if (!payload[v.name]) payload[v.name] = v.values[0];
+                      payload[v.name] = v.values[0];
                     });
                     onAddToCart(prod, payload);
                   }}
@@ -1523,6 +1481,42 @@ export default function StorefrontPreview({
 
       {/* Main standard footer rendered on all views */}
       {renderFooter()}
+
+      <AnimatePresence>
+        {previewModalUrl && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-lg shadow-xl overflow-hidden w-[90vw] h-[90vh] flex flex-col relative"
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-150 shrink-0">
+                <span className="font-bold text-xs text-zinc-800 tracking-wider font-sans uppercase">
+                  Aperçu du template
+                </span>
+                <button
+                  onClick={() => setPreviewModalUrl(null)}
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                  aria-label="Fermer"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+              
+              {/* Iframe content */}
+              <div className="flex-1 bg-gray-50 relative">
+                <iframe
+                  src={previewModalUrl}
+                  className="w-full h-full border-0"
+                  title="Template Preview"
+                />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
