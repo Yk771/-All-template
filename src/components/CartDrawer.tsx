@@ -27,7 +27,7 @@ export default function CartDrawer({
   const [promoCode, setPromoCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; percent: number } | null>(null);
   const [promoError, setPromoError] = useState('');
-  const [checkoutStep, setCheckoutStep] = useState<'cart' | 'shipping' | 'payment'>('cart');
+  const [checkoutStep, setCheckoutStep] = useState<'cart' | 'shipping'>('cart');
   
   // Shipping details state
   const [name, setName] = useState('Jane Doe');
@@ -62,8 +62,6 @@ export default function CartDrawer({
     if (checkoutStep === 'cart') {
       setCheckoutStep('shipping');
     } else if (checkoutStep === 'shipping') {
-      setCheckoutStep('payment');
-    } else {
       // Stripe paiement réel
       checkout(cart);
     }
@@ -140,10 +138,9 @@ export default function CartDrawer({
 
             {/* Checkout Progress Breadcrumbs */}
             {cart.length > 0 && (
-              <div className="grid grid-cols-3 text-center border-b border-gray-100 bg-gray-50/50 text-[10px] font-semibold tracking-wider uppercase text-gray-500 py-2.5">
+              <div className="grid grid-cols-2 text-center border-b border-gray-100 bg-gray-50/50 text-[10px] font-semibold tracking-wider uppercase text-gray-500 py-2.5">
                 <span className={checkoutStep === 'cart' ? 'text-black font-extrabold font-sans' : 'font-sans'}>1. Panier</span>
                 <span className={checkoutStep === 'shipping' ? 'text-black font-extrabold font-sans' : 'font-sans'}>2. Coordonnées</span>
-                <span className={checkoutStep === 'payment' ? 'text-black font-extrabold font-sans' : 'font-sans'}>3. Paiement</span>
               </div>
             )}
 
@@ -293,122 +290,11 @@ export default function CartDrawer({
                     </motion.div>
                   )}
 
-                  {checkoutStep === 'payment' && (
-                    <motion.div
-                      key="step-payment"
-                      initial={{ opacity: 0, x: 15 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -15 }}
-                      className="p-4 space-y-4 flex-1 font-sans"
-                    >
-                      <h3 className="font-semibold font-serif text-sm text-gray-900 tracking-tight">Aperçu du Paiement Sécurisé</h3>
-                      
-                      <div className="border border-gray-100 bg-gray-50/50 p-3 rounded space-y-2 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Destinataire :</span>
-                          <span className="font-semibold text-right">{name}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">E-mail d'envoi :</span>
-                          <span className="font-semibold text-right max-w-[200px] truncate">{email}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Livraison :</span>
-                          <span className="font-semibold text-emerald-700 text-right">Instantanée (Gratuit) 📩</span>
-                        </div>
-                      </div>
 
-                      <div className="space-y-3 text-xs">
-                        <div>
-                          <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Numéro de Carte</label>
-                          <div className="relative">
-                            <input
-                              type="text"
-                              disabled
-                              value="•••• •••• •••• 4242"
-                              className="w-full border border-gray-200 p-2.5 rounded-sm bg-gray-50 text-gray-400 focus:outline-none"
-                            />
-                            <CreditCard className="w-4 h-4 text-gray-400 absolute right-3 top-3.5" />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Date d'Expiration</label>
-                            <input
-                              type="text"
-                              disabled
-                              value="12/28"
-                              className="w-full border border-gray-200 p-2.5 rounded-sm bg-gray-50 text-gray-400 focus:outline-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Code de Sécurité (CVV)</label>
-                            <input
-                              type="text"
-                              disabled
-                              value="***"
-                              className="w-full border border-gray-200 p-2.5 rounded-sm bg-gray-50 text-gray-400 focus:outline-none"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="border border-amber-100 bg-amber-50/40 p-2.5 rounded text-[11px] text-amber-900 flex items-center gap-2">
-                        <RefreshCcw className="w-3.5 h-3.5 text-amber-600 animate-spin" />
-                        <span>Mode de démonstration actif. Aucune transaction financière réelle.</span>
-                      </div>
-                    </motion.div>
-                  )}
                 </AnimatePresence>
 
                 {/* Sticky Summary & Action Footer */}
                 <div className="mt-auto border-t border-gray-100 p-4 bg-gray-50/80 space-y-3 font-sans">
-                  {/* Promo Input Only Shown on Review Bag step */}
-                  {checkoutStep === 'cart' && (
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <input
-                          id="promo-code-input"
-                          type="text"
-                          placeholder="Code promo (WELCOME10, CRAFT20)"
-                          value={promoCode}
-                          onChange={(e) => {
-                            setPromoCode(e.target.value);
-                            setPromoError('');
-                          }}
-                          className="w-full border border-gray-200 bg-white placeholder-gray-400 p-2 text-xs rounded-sm focus:ring-1 focus:ring-zinc-800 focus:border-zinc-800"
-                        />
-                      </div>
-                      <button
-                        id="apply-promo-btn"
-                        onClick={handleApplyPromo}
-                        className="p-2 px-4 bg-zinc-800 hover:bg-zinc-900 text-white text-xs font-semibold rounded-sm transition-colors"
-                      >
-                        Appliquer
-                      </button>
-                    </div>
-                  )}
-
-                  {promoError && (
-                    <p className="text-[10px] text-red-600 font-semibold">{promoError}</p>
-                  )}
-
-                  {appliedDiscount && checkoutStep === 'cart' && (
-                    <div className="bg-emerald-50 text-emerald-950 p-2 rounded text-[11px] flex justify-between items-center">
-                      <span className="flex items-center gap-1 font-semibold">
-                        <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
-                        Code Appliqué : {appliedDiscount.code} (-{appliedDiscount.percent}%)
-                      </span>
-                      <button
-                        id="remove-discount-btn"
-                        className="text-red-700 hover:text-red-900 text-[10px] underline font-semibold"
-                        onClick={() => setAppliedDiscount(null)}
-                      >
-                        Retirer
-                      </button>
-                    </div>
-                  )}
 
                   <div className="space-y-1.5 text-xs text-gray-500">
                     <div className="flex justify-between">
@@ -443,7 +329,6 @@ export default function CartDrawer({
                         id="checkout-back-btn"
                         onClick={() => {
                           if (checkoutStep === 'shipping') setCheckoutStep('cart');
-                          if (checkoutStep === 'payment') setCheckoutStep('shipping');
                         }}
                         className="flex-1 py-3 text-xs tracking-wider uppercase bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold rounded-sm transition-all"
                       >
@@ -454,7 +339,7 @@ export default function CartDrawer({
                     <button
                       id="checkout-action-btn"
                       onClick={handleCheckout}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || stripeLoading}
                       className="flex-[2] py-3 text-xs tracking-wider uppercase text-white font-bold transition-all shadow-md flex items-center justify-center gap-1.5 hover:shadow-lg hover:brightness-110 disabled:opacity-70 disabled:cursor-not-allowed"
                       style={{
                         backgroundColor: themeSettings.primaryColor,
@@ -462,18 +347,16 @@ export default function CartDrawer({
                         textTransform: themeSettings.uppercaseButtons ? 'uppercase' : 'none',
                       }}
                     >
-                      {isSubmitting ? (
+                      {isSubmitting || stripeLoading ? (
                         <>
                           <RefreshCcw className="w-3.5 h-3.5 animate-spin" />
-                          Traitement en cours...
+                          {stripeLoading ? 'Redirection vers Stripe...' : 'Traitement en cours...'}
                         </>
                       ) : checkoutStep === 'cart' ? (
                         <>
                           <CreditCard className="w-3.5 h-3.5" />
                           Valider la commande
                         </>
-                      ) : checkoutStep === 'shipping' ? (
-                        'Continuer vers le paiement'
                       ) : (
                         `Payer & Finaliser (${grandTotal.toFixed(2)}€)`
                       )}
