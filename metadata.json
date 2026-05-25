@@ -1,0 +1,6 @@
+{
+  "name": "ALL template Boutique",
+  "description": "Une boutique en ligne haut de gamme et interactive avec son catalogue de produits, sa sélection de variantes, son panier d'achat fluide et une expérience e-commerce premium.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
