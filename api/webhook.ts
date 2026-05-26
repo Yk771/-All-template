@@ -73,8 +73,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (hasProd12) {
       // Send admin notification to yaakoubabid77@gmail.com
       const { error: adminEmailError } = await resend.emails.send({
-        from: 'ALL Template <noreply@all-template.vercel.app>',
-        to: 'yaakoubabid77@gmail.com',
+        from: 'ALL Template <noreply@all-tempalte.fr>',
+        to: 'alltemplate33@gmail.com',
         subject: 'Nouvelle commande template personnalisé',
         html: `
           <div style="font-family: 'Segoe UI', sans-serif; padding: 24px; color: #1e293b; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 600px; margin: 0 auto;">
@@ -114,7 +114,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // Send confirmation to customer
       const { error: clientEmailError } = await resend.emails.send({
-        from: 'ALL Template <noreply@all-template.vercel.app>',
+        from: 'ALL Template <noreply@all-tempalte.fr>',
         to: email,
         subject: 'Votre demande est bien reçue - ALL Template',
         html: `
@@ -185,7 +185,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // Envoyer l'email standard avec Resend
       const { error: emailError } = await resend.emails.send({
-        from: 'ALL Template <noreply@all-template.vercel.app>',
+        from: 'ALL Template <noreply@all-tempalte.fr>',
         to: email,
         subject: '✅ Votre achat ALL Template — Accès immédiat à vos templates',
         html: `
