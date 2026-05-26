@@ -6,17 +6,17 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 const TEMPLATE_LINKS: Record<string, string> = {
-  prod_1: 'https://all-template.vercel.app/templates/template-business-ultime.html',
-  prod_2: 'https://all-template.vercel.app/templates/template-budget-mensuel.html',
-  prod_3: 'https://all-template.vercel.app/templates/template-calendrier-contenu.html',
-  prod_4: 'https://all-template.vercel.app/templates/template-suivi-clients.html',
-  prod_5: 'https://all-template.vercel.app/templates/template-tracker-habitudes.html',
-  prod_6: 'https://all-template.vercel.app/templates/template-planner-voyage.html',
-  prod_7: 'https://all-template.vercel.app/templates/template-fitness-tracker.html',
-  prod_8: 'https://all-template.vercel.app/templates/template-planner-etudiant.html',
-  prod_9: 'https://all-template.vercel.app/templates/template-suivi-investissements.html',
-  prod_10: 'https://all-template.vercel.app/templates/template-wedding-planner.html',
-  prod_11: 'https://all-template.vercel.app/templates/template-freelance-dashboard.html',
+  prod_1: 'https://all-tempalte.fr/templates/template-business-ultime.html',
+  prod_2: 'https://all-tempalte.fr/templates/template-budget-mensuel.html',
+  prod_3: 'https://all-tempalte.fr/templates/template-calendrier-contenu.html',
+  prod_4: 'https://all-tempalte.fr/templates/template-suivi-clients.html',
+  prod_5: 'https://all-tempalte.fr/templates/template-tracker-habitudes.html',
+  prod_6: 'https://all-tempalte.fr/templates/template-planner-voyage.html',
+  prod_7: 'https://all-tempalte.fr/templates/template-fitness-tracker.html',
+  prod_8: 'https://all-tempalte.fr/templates/template-planner-etudiant.html',
+  prod_9: 'https://all-tempalte.fr/templates/template-suivi-investissements.html',
+  prod_10: 'https://all-tempalte.fr/templates/template-wedding-planner.html',
+  prod_11: 'https://all-tempalte.fr/templates/template-freelance-dashboard.html',
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
