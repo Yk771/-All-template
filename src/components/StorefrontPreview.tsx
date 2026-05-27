@@ -897,7 +897,7 @@ export default function StorefrontPreview({
               <div className={`grid gap-6 ${columnsClass}`}>
                 {PRODUCTS.slice(0, 4).map((p) => {
                   const compareVal = p.compareAtPrice;
-                  const discountVal = Math.round(((compareVal - p.price) / compareVal) * 100);
+                  const discountVal = compareVal ? Math.round(((compareVal - p.price) / compareVal) * 100) : 0;
 
                   return (
                     <div
@@ -915,9 +915,11 @@ export default function StorefrontPreview({
                           <span style={{ backgroundColor: themeSettings.accentColor }} className="text-white px-2 py-0.5 rounded shadow shadow-zinc-900/10">
                             Plus populaire
                           </span>
-                          <span className="bg-red-650 text-white px-2 py-0.5 rounded shadow">
-                            -{discountVal}%
-                          </span>
+                          {compareVal && discountVal > 0 && (
+                            <span className="bg-red-650 text-white px-2 py-0.5 rounded shadow">
+                              -{discountVal}%
+                            </span>
+                          )}
                         </div>
 
                         <img
@@ -959,9 +961,11 @@ export default function StorefrontPreview({
                         <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
                           <div>
                             <span className="font-sans font-black text-xs text-gray-950">{p.price.toFixed(2)}€</span>
-                            <span className="text-[10px] text-gray-400 line-through font-sans block">
-                              {p.compareAtPrice.toFixed(2)}€
-                            </span>
+                            {p.compareAtPrice && (
+                              <span className="text-[10px] text-gray-400 line-through font-sans block">
+                                {p.compareAtPrice.toFixed(2)}€
+                              </span>
+                            )}
                           </div>
 
                           <button
@@ -1243,7 +1247,7 @@ export default function StorefrontPreview({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {filteredProducts.map((p) => {
-                const discountVal = Math.round(((p.compareAtPrice - p.price) / p.compareAtPrice) * 100);
+                const discountVal = p.compareAtPrice ? Math.round(((p.compareAtPrice - p.price) / p.compareAtPrice) * 100) : 0;
 
                 return (
                   <div
@@ -1258,9 +1262,11 @@ export default function StorefrontPreview({
                         <span style={{ backgroundColor: themeSettings.accentColor }} className="text-white px-2 py-0.5 rounded shadow">
                           Plus populaire
                         </span>
-                        <span className="bg-red-650 text-white px-2 py-0.5 rounded shadow">
-                          -{discountVal}%
-                        </span>
+                        {p.compareAtPrice && discountVal > 0 && (
+                          <span className="bg-red-650 text-white px-2 py-0.5 rounded shadow">
+                            -{discountVal}%
+                          </span>
+                        )}
                       </div>
 
                       <img
@@ -1304,7 +1310,9 @@ export default function StorefrontPreview({
                       <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-100">
                         <div>
                           <span className="font-bold text-xs text-zinc-950 block">{p.price.toFixed(2)}€</span>
-                          <span className="text-[9px] text-gray-400 line-through block">{p.compareAtPrice.toFixed(2)}€</span>
+                          {p.compareAtPrice && (
+                            <span className="text-[9px] text-gray-400 line-through block">{p.compareAtPrice.toFixed(2)}€</span>
+                          )}
                         </div>
 
                         <button
@@ -1803,7 +1811,7 @@ export default function StorefrontPreview({
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {relatedProducts.map((p) => {
-                const discount = Math.round(((p.compareAtPrice - p.price) / p.compareAtPrice) * 100);
+                const discount = p.compareAtPrice ? Math.round(((p.compareAtPrice - p.price) / p.compareAtPrice) * 100) : 0;
                 return (
                   <div
                     key={p.id}
@@ -1811,14 +1819,18 @@ export default function StorefrontPreview({
                     className="border border-gray-150 rounded bg-[#F9FAFB] p-4 cursor-pointer hover:shadow transition-all text-center flex flex-col justify-between overflow-hidden"
                   >
                     <div className="aspect-video w-full overflow-hidden bg-white mb-3 rounded flex items-center justify-center relative">
-                      <span className="absolute bg-zinc-900 text-white text-[8px] font-bold px-1.5 py-0.5 rounded left-2 top-2">-{discount}% Off</span>
+                      {p.compareAtPrice && discount > 0 && (
+                        <span className="absolute bg-zinc-900 text-white text-[8px] font-bold px-1.5 py-0.5 rounded left-2 top-2">-{discount}% Off</span>
+                      )}
                       <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                     </div>
                     <div>
                       <h4 className="font-extrabold text-xs text-gray-900 line-clamp-1">{p.title}</h4>
                       <div className="flex justify-center items-center gap-2 mt-1.5">
                         <span className="text-xs font-black text-zinc-950">{p.price.toFixed(2)}€</span>
-                        <span className="text-[10px] text-gray-400 line-through">{p.compareAtPrice.toFixed(2)}€</span>
+                        {p.compareAtPrice && (
+                          <span className="text-[10px] text-gray-400 line-through">{p.compareAtPrice.toFixed(2)}€</span>
+                        )}
                       </div>
                     </div>
                   </div>
