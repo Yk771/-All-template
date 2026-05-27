@@ -76,6 +76,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         from: 'ALL Template <noreply@all-tempalte.fr>',
         to: 'alltemplate33@gmail.com',
         subject: 'Nouvelle commande template personnalisé',
+        headers: {
+          'X-Entity-Ref-ID': paymentId,
+        },
+        tags: [
+          { name: 'category', value: 'transactional' }
+        ],
         html: `
           <div style="font-family: 'Segoe UI', sans-serif; padding: 24px; color: #1e293b; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #0f172a; font-size: 20px; font-weight: 800; border-bottom: 2px solid #ef4444; padding-bottom: 12px; margin-top: 0;">🎨 Nouvelle commande de template personnalisé</h2>
@@ -117,6 +123,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         from: 'ALL Template <noreply@all-tempalte.fr>',
         to: email,
         subject: 'Votre demande est bien reçue - ALL Template',
+        headers: {
+          'X-Entity-Ref-ID': paymentId,
+        },
+        tags: [
+          { name: 'category', value: 'transactional' }
+        ],
         html: `
           <!DOCTYPE html>
           <html>
@@ -138,7 +150,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                   Notre concepteur est déjà mobilisé pour créer votre outil selon vos besoins précis.
                 </p>
                 <p style="color:#64748b;font-size:13px;margin-top:20px;border-top:1px solid rgba(255,255,255,0.05);padding-top:16px;">
-                  Si vous avez des précisions, documents d'exemple ou maquettes à nous partager pour votre design, n'hésitez pas à répondre directement à cet e-mail ou à nous écrire à <a href="mailto:yaakoubabid77@gmail.com" style="color:#6ee7b7;text-decoration:none;font-weight:bold;">yaakoubabid77@gmail.com</a>.
+                  Si vous avez des précisions, documents d'exemple ou maquettes à nous partager pour votre design, n'hésitez pas à répondre directement à cet e-mail ou à nous écrire à <a href="mailto:contact@all-tempalte.fr" style="color:#6ee7b7;text-decoration:none;font-weight:bold;">contact@all-tempalte.fr</a>.
                 </p>
               </div>
               
@@ -188,6 +200,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         from: 'ALL Template <noreply@all-tempalte.fr>',
         to: email,
         subject: '✅ Votre achat ALL Template — Accès immédiat à vos templates',
+        headers: {
+          'X-Entity-Ref-ID': paymentId,
+        },
+        tags: [
+          { name: 'category', value: 'transactional' }
+        ],
         html: `
           <!DOCTYPE html>
           <html>
@@ -222,7 +240,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               </div>
               
               <p style="text-align:center;font-size:12px;color:#475569;margin:0;">
-                Une question ? Contactez-nous à <a href="mailto:yaakoubabid77@gmail.com" style="color:#6ee7b7;">yaakoubabid77@gmail.com</a><br>
+                Une question ? Contactez-nous à <a href="mailto:contact@all-tempalte.fr" style="color:#6ee7b7;">contact@all-tempalte.fr</a><br>
                 © 2026 ALL Template. Tous droits réservés.
               </p>
             </div>

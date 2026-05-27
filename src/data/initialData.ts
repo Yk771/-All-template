@@ -326,24 +326,6 @@ export const PRODUCTS: Product[] = [
     inStock: true,
     inventoryCount: 999,
     customField: true,
-  },
-  {
-    id: 'prod_test',
-    title: 'Template Test Gratuit',
-    handle: 'template-test-gratuit',
-    price: 0.00,
-    compareAtPrice: null,
-    rating: 5.0,
-    reviewCount: 0,
-    summary: 'Produit de test uniquement.',
-    description: 'Produit de test pour vérifier le système de paiement.',
-    images: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1000'],
-    variants: [],
-    badges: ['Test'],
-    specs: [],
-    tags: ['test'],
-    inStock: true,
-    inventoryCount: 999,
   }
 ];
 
