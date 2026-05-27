@@ -79,6 +79,81 @@ export default function StorefrontPreview({
   const [newReviewRating, setNewReviewRating] = useState(5);
   const [newReviewAuthor, setNewReviewAuthor] = useState('');
 
+  // Testimonials Reviews System
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviewAuthor, setReviewAuthor] = useState('');
+  const [reviewRole, setReviewRole] = useState('');
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewQuote, setReviewQuote] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewSuccessMessage, setReviewSuccessMessage] = useState<string | null>(null);
+
+  // Load pending reviews from localStorage
+  const [pendingReviews, setPendingReviews] = useState<{ author: string; role: string; rating: number; quote: string }[]>(() => {
+    try {
+      const stored = localStorage.getItem('pending_reviews');
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewAuthor.trim() || !reviewRole.trim() || !reviewQuote.trim()) {
+      return;
+    }
+    if (reviewQuote.trim().length < 20) {
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    setReviewSuccessMessage(null);
+
+    try {
+      const response = await fetch('/api/submit-review', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          author: reviewAuthor.trim(),
+          role: reviewRole.trim(),
+          rating: reviewRating,
+          quote: reviewQuote.trim()
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit review');
+      }
+
+      const newReview = {
+        author: reviewAuthor.trim(),
+        role: reviewRole.trim(),
+        rating: reviewRating,
+        quote: reviewQuote.trim()
+      };
+
+      const updatedPending = [...pendingReviews, newReview];
+      setPendingReviews(updatedPending);
+      localStorage.setItem('pending_reviews', JSON.stringify(updatedPending));
+
+      setReviewSuccessMessage('Merci pour votre avis ! Il sera publié après validation.');
+      
+      // Reset form
+      setReviewAuthor('');
+      setReviewRole('');
+      setReviewRating(5);
+      setReviewQuote('');
+    } catch (error) {
+      console.error(error);
+      alert("Une erreur est survenue lors de l'envoi de votre avis.");
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
   const getProductRatingDetails = (productId: string) => {
     const list = reviewsState[productId] || [];
     if (list.length === 0) {
@@ -1036,55 +1111,60 @@ export default function StorefrontPreview({
             }}
             className="py-12 px-6 border-b border-gray-100"
           >
-            <div className="max-w-7xl mx-auto">
-              <h3 className="text-center font-bold text-xs tracking-widest uppercase text-gray-500 mb-10">
+            <div className="max-w-3xl mx-auto text-center">
+              <h3 className="text-center font-bold text-xs tracking-widest uppercase text-gray-500 mb-6">
                 L'avis de nos clients satisfaits
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-                {[
-                  {
-                    author: "Mehdi L.",
-                    role: "Freelance en Tech",
-                    quote: "Le template Business Ultime a changé ma façon de facturer et suivre mes projets. En moins d'un après-midi, tout était dupliqué sur mon Notion. Le système interactif de suivi de budget est top, conforme à mes attentes.",
-                    rating: 5
-                  },
-                  {
-                    author: "Assia T.",
-                    role: "Créatrice de Contenu",
-                    quote: "Je cherchais un outil simple pour suivre mes routines et mes dépenses mensuelles. Le tracker d'habitudes est tellement interactif et agréable à utiliser ! Reçu dans ma boîte mail 10 secondes après le paiement.",
-                    rating: 5
-                  }
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    style={{ backgroundColor: themeSettings.backgroundColor }}
-                    className={`p-6 border border-gray-100 flex flex-col justify-between ${getRadiusClass('card')}`}
-                  >
-                    <div>
-                      <div className="flex opacity-85 mb-2.5">
-                        {[...Array(item.rating)].map((_, iStar) => (
-                          <Star key={iStar} className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                        ))}
-                      </div>
-                      <p className="text-xs text-gray-650 italic leading-relaxed font-sans">
-                        "{item.quote}"
-                      </p>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
+              {pendingReviews.length === 0 ? (
+                <div className="mb-8">
+                  <p className="text-xs text-gray-500 font-sans italic">
+                    Aucun avis pour le moment. Soyez le premier à partager votre expérience !
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch mb-8 text-left">
+                  {pendingReviews.map((item, i) => (
+                    <div
+                      key={i}
+                      style={{ backgroundColor: themeSettings.backgroundColor }}
+                      className={`p-6 border border-gray-100 flex flex-col justify-between relative ${getRadiusClass('card')}`}
+                    >
                       <div>
-                        <span className="font-extrabold text-xs block text-gray-900 font-sans">{item.author}</span>
-                        <span className="text-[10px] text-gray-400 font-sans block">{item.role}</span>
+                        <div className="flex opacity-85 mb-2.5">
+                          {[...Array(item.rating)].map((_, iStar) => (
+                            <Star key={iStar} className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                          ))}
+                        </div>
+                        <p className="text-xs text-gray-650 italic leading-relaxed font-sans">
+                          "{item.quote}"
+                        </p>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-[9px] text-emerald-600 font-bold font-sans">Achat vérifié</span>
-                        <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+
+                      <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
+                        <div>
+                          <span className="font-extrabold text-xs block text-gray-900 font-sans">{item.author}</span>
+                          <span className="text-[10px] text-gray-400 font-sans block">{item.role}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[9px] text-amber-600 font-bold font-sans">En attente de validation</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                onClick={() => {
+                  setReviewSuccessMessage(null);
+                  setIsReviewModalOpen(true);
+                }}
+                style={{ backgroundColor: themeSettings.accentColor }}
+                className={`px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:brightness-110 cursor-pointer ${getRadiusClass('button')}`}
+              >
+                ⭐ Laisser un avis
+              </button>
             </div>
           </section>
         );
@@ -1974,6 +2054,134 @@ export default function StorefrontPreview({
                   className="w-full h-full border-0"
                   title="Template Preview"
                 />
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {isReviewModalOpen && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-lg shadow-xl overflow-hidden w-full max-w-md flex flex-col relative"
+            >
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-150 shrink-0">
+                <span className="font-bold text-xs text-zinc-800 tracking-wider font-sans uppercase">
+                  Laisser un avis
+                </span>
+                <button
+                  onClick={() => setIsReviewModalOpen(false)}
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                  aria-label="Fermer"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto max-h-[85vh]">
+                {reviewSuccessMessage ? (
+                  <div className="text-center py-4">
+                    <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle className="w-6 h-6" />
+                    </div>
+                    <p className="text-sm font-semibold text-zinc-900 mb-2">Avis envoyé !</p>
+                    <p className="text-xs text-gray-500 leading-relaxed font-sans mb-6">
+                      {reviewSuccessMessage}
+                    </p>
+                    <button
+                      onClick={() => setIsReviewModalOpen(false)}
+                      style={{ backgroundColor: themeSettings.accentColor }}
+                      className={`w-full py-2.5 text-xs font-bold text-white shadow-sm hover:brightness-110 cursor-pointer ${getRadiusClass('button')}`}
+                    >
+                      Fermer
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmitReview} className="space-y-4 text-left">
+                    <div>
+                      <label className="block text-[11px] font-bold text-zinc-700 tracking-wider uppercase mb-1.5 font-sans">
+                        Prénom et initiale du nom <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="ex: Marie L."
+                        value={reviewAuthor}
+                        onChange={(e) => setReviewAuthor(e.target.value)}
+                        className="w-full text-xs px-3 py-2 border border-gray-250 rounded focus:border-zinc-400 focus:outline-none font-sans"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-zinc-700 tracking-wider uppercase mb-1.5 font-sans">
+                        Votre profession / activité <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="ex: Freelance en Tech"
+                        value={reviewRole}
+                        onChange={(e) => setReviewRole(e.target.value)}
+                        className="w-full text-xs px-3 py-2 border border-gray-250 rounded focus:border-zinc-400 focus:outline-none font-sans"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-zinc-700 tracking-wider uppercase mb-1.5 font-sans">
+                        Note globale <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex items-center gap-1.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setReviewRating(star)}
+                            className="p-1 hover:scale-110 transition-transform cursor-pointer focus:outline-none text-amber-500"
+                          >
+                            <Star
+                              className={`w-6 h-6 ${
+                                star <= reviewRating ? 'fill-amber-500' : 'text-gray-200'
+                              }`}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-zinc-700 tracking-wider uppercase mb-1.5 font-sans">
+                        Votre avis <span className="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        required
+                        rows={4}
+                        placeholder="Partagez votre retour d'expérience avec nous..."
+                        value={reviewQuote}
+                        onChange={(e) => setReviewQuote(e.target.value)}
+                        className="w-full text-xs px-3 py-2 border border-gray-250 rounded focus:border-zinc-400 focus:outline-none font-sans resize-none"
+                      />
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-[10px] text-gray-400 font-sans">
+                          Minimum 20 caractères
+                        </span>
+                        <span className={`text-[10px] font-bold font-sans ${reviewQuote.trim().length >= 20 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                          {reviewQuote.trim().length} / 20
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSubmittingReview || reviewQuote.trim().length < 20}
+                      style={{ backgroundColor: themeSettings.accentColor }}
+                      className={`w-full py-2.5 mt-2 text-xs font-bold text-white shadow-sm hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${getRadiusClass('button')}`}
+                    >
+                      {isSubmittingReview ? 'Envoi en cours...' : 'Envoyer mon avis'}
+                    </button>
+                  </form>
+                )}
               </div>
             </motion.div>
           </div>
