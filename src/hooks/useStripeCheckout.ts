@@ -1,50 +1,35 @@
 import { useState } from 'react';
-import type { CartItem } from '../types';
-import { getItemPrice } from '../utils/cartHelper';
+import { APERCU, type ArticlePanier } from '../types';
 
 export function useStripeCheckout() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [chargement, setChargement] = useState(false);
+  const [erreur, setErreur] = useState<string | null>(null);
 
-  const checkout = async (cart: CartItem[]) => {
-    setIsLoading(true);
-    setError(null);
-
+  const payer = async (panier: ArticlePanier[]) => {
+    setErreur(null);
+    if (APERCU) {
+      setErreur('Ceci est un aperçu : le paiement Stripe fonctionnera une fois le site déployé avec ta clé Stripe.');
+      return;
+    }
+    setChargement(true);
     try {
-      const items = cart.map((item) => {
-        const variantDesc = Object.values(item.selectedVariant).join(' / ');
-        const fullTitle = variantDesc ? `${item.product.title} (${variantDesc})` : item.product.title;
-        return {
-          productId: item.id.split('-')[0], // ex: prod_1 depuis prod_1-variant
-          title: fullTitle,
-          price: getItemPrice(item),
-          quantity: item.quantity,
-          selectedVariant: item.selectedVariant,
-          customText: item.customText || '',
-        };
-      });
-
-      const response = await fetch('/api/create-checkout', {
+      // On n'envoie que l'identifiant, les options et la quantité : le serveur fixe le prix.
+      const articles = panier.map((a) => ({ id: a.produit.id, variante: a.variante, quantite: a.quantite }));
+      const reponse = await fetch('/api/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({ articles }),
       });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la création du paiement');
+      const data = await reponse.json().catch(() => ({}));
+      if (!reponse.ok || !data.url) {
+        throw new Error(data.error || 'Le paiement n’a pas pu démarrer.');
       }
-
-      const { url } = await response.json();
-      
-      // Rediriger vers Stripe Checkout
-      window.location.href = url;
-    } catch (err) {
-      setError('Une erreur est survenue. Veuillez réessayer.');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+      window.location.href = data.url;
+    } catch (e) {
+      setErreur(e instanceof Error ? e.message : 'Le paiement n’a pas pu démarrer. Réessaie dans un instant.');
+      setChargement(false);
     }
   };
 
-  return { checkout, isLoading, error };
+  return { payer, chargement, erreur };
 }

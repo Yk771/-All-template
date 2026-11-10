@@ -1,373 +1,159 @@
+import { useEffect, useRef } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { Lock, Minus, Plus, Trash2, X } from 'lucide-react';
+import { BOUTIQUE, euros, fraisDePort } from '../../shared/config';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, Plus, Minus, Trash2, ShoppingBag, CreditCard, Sparkles, Shield, RefreshCcw } from 'lucide-react';
-import { CartItem, ThemeSettings } from '../types';
-import { useState } from 'react';
-import { getItemPrice } from '../utils/cartHelper';
+import { APERCU, type ArticlePanier } from '../types';
+import ProductArt from './ProductArt';
 
-interface CartDrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  cart: CartItem[];
-  updateQuantity: (id: string, qty: number) => void;
-  removeItem: (id: string) => void;
-  themeSettings: ThemeSettings;
-  onCheckoutSuccess: () => void;
+interface Props {
+  ouvert: boolean;
+  onFermer: () => void;
+  panier: ArticlePanier[];
+  changerQuantite: (cle: string, quantite: number) => void;
+  retirer: (cle: string) => void;
 }
 
-export default function CartDrawer({
-  isOpen,
-  onClose,
-  cart,
-  updateQuantity,
-  removeItem,
-  themeSettings,
-  onCheckoutSuccess,
-}: CartDrawerProps) {
-  const { checkout, isLoading: stripeLoading } = useStripeCheckout();
-  const [promoCode, setPromoCode] = useState('');
-  const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; percent: number } | null>(null);
-  const [promoError, setPromoError] = useState('');
-  const [checkoutStep, setCheckoutStep] = useState<'cart' | 'shipping'>('cart');
-  
-  // Shipping details state
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [address, setAddress] = useState('100% Digital Download');
-  const [city, setCity] = useState('Instant Email Delivery');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export default function CartDrawer({ ouvert, onFermer, panier, changerQuantite, retirer }: Props) {
+  const { payer, chargement, erreur } = useStripeCheckout();
+  const fermerRef = useRef<HTMLButtonElement>(null);
 
-  const subtotal = cart.reduce((total, item) => total + getItemPrice(item) * item.quantity, 0);
-  const freeShippingThreshold = 0;
-  const isFreeShipping = true;
-  const shippingCost = 0;
-  
-  const discountAmount = appliedDiscount ? (subtotal * appliedDiscount.percent) / 100 : 0;
-  const grandTotal = subtotal - discountAmount + shippingCost;
+  const sousTotal = panier.reduce((s, a) => s + a.produit.prix * a.quantite, 0);
+  const port = fraisDePort(sousTotal);
+  const total = sousTotal + port;
+  const reste = Math.max(0, BOUTIQUE.livraisonOfferteDes - sousTotal);
+  const progression = Math.min(100, (sousTotal / BOUTIQUE.livraisonOfferteDes) * 100);
 
-  const handleApplyPromo = () => {
-    setPromoError('');
-    const code = promoCode.toUpperCase().trim();
-    if (code === 'WELCOME10') {
-      setAppliedDiscount({ code: 'WELCOME10', percent: 10 });
-      setPromoCode('');
-    } else if (code === 'CRAFT20') {
-      setAppliedDiscount({ code: 'CRAFT20', percent: 20 });
-      setPromoCode('');
-    } else {
-      setPromoError('Invalid promo code. Try "WELCOME10" or "CRAFT20"');
-    }
-  };
-
-  const handleCheckout = () => {
-    if (checkoutStep === 'cart') {
-      setCheckoutStep('shipping');
-    } else if (checkoutStep === 'shipping') {
-      // Stripe paiement réel
-      checkout(cart);
-    }
-  };
+  useEffect(() => {
+    if (!ouvert) return;
+    fermerRef.current?.focus();
+    const touche = (e: KeyboardEvent) => e.key === 'Escape' && onFermer();
+    document.addEventListener('keydown', touche);
+    return () => document.removeEventListener('keydown', touche);
+  }, [ouvert, onFermer]);
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      {ouvert && (
         <>
-          {/* Backdrop overlay */}
           <motion.div
+            className="fixed inset-0 z-40 bg-encre/40"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black z-50 pointer-events-auto"
-            onClick={() => {
-              setCheckoutStep('cart');
-              onClose();
-            }}
+            onClick={onFermer}
           />
-
-          {/* Drawer container */}
-          <motion.div
+          <motion.aside
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="panier-titre"
+            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-white"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-            id="shopify-cart-drawer"
-            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white text-gray-900 shadow-2xl z-50 flex flex-col pointer-events-auto"
-            style={{
-              fontFamily: themeSettings.fontFamily === 'serif' ? '"Playfair Display", Georgia, serif' : themeSettings.fontFamily === 'mono' ? '"JetBrains Mono", monospace' : 'inherit',
-            }}
+            transition={{ type: 'spring', damping: 32, stiffness: 300 }}
           >
-            {/* Drawer Header */}
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5" style={{ color: themeSettings.primaryColor }} />
-                <span className="font-semibold text-lg tracking-tight">Votre Panier</span>
-                <span className="bg-gray-100 text-xs px-2 py-0.5 rounded-full font-medium">
-                  {cart.length}
-                </span>
-              </div>
-              
-              <button
-                id="close-cart-btn"
-                onClick={() => {
-                  setCheckoutStep('cart');
-                  onClose();
-                }}
-                className="p-1 px-2 text-gray-400 hover:text-gray-900 transition-colors text-sm flex items-center gap-1"
-              >
-                Fermer <X className="w-4 h-4" />
+            <div className="flex items-center justify-between border-b border-encre/10 px-6 py-5">
+              <h2 id="panier-titre" className="font-display text-2xl text-encre">Ton panier</h2>
+              <button ref={fermerRef} type="button" onClick={onFermer} className="rounded-full p-2 text-encre hover:bg-lavis" aria-label="Fermer le panier">
+                <X className="h-5 w-5" aria-hidden />
               </button>
             </div>
 
-            {/* Shopify Shipping Progress Bar */}
-            {cart.length > 0 && checkoutStep === 'cart' && (
-              <div className="bg-emerald-50/80 p-4 border-b border-emerald-100/30 text-[11px] text-emerald-950 font-medium">
-                <div className="flex justify-between items-center mb-1 font-semibold">
-                  <span className="flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
-                    Livraison instantanée 100% digitale par e-mail • GRATUIT 📩
-                  </span>
-                  <span>100%</span>
-                </div>
-                <div className="w-full bg-emerald-200/40 h-1 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-emerald-600 transition-all duration-500 rounded-full"
-                    style={{ width: '100%' }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Checkout Progress Breadcrumbs */}
-            {cart.length > 0 && (
-              <div className="grid grid-cols-2 text-center border-b border-gray-100 bg-gray-50/50 text-[10px] font-semibold tracking-wider uppercase text-gray-500 py-2.5">
-                <span className={checkoutStep === 'cart' ? 'text-black font-extrabold font-sans' : 'font-sans'}>1. Panier</span>
-                <span className={checkoutStep === 'shipping' ? 'text-black font-extrabold font-sans' : 'font-sans'}>2. Coordonnées</span>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {cart.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-gray-500">
-                <ShoppingBag className="w-12 h-12 text-gray-300 stroke-[1.2] mb-3" />
-                <h3 className="font-medium text-lg text-gray-800 mb-1">Votre panier est vide</h3>
-                <p className="text-sm text-gray-400 max-w-xs mb-6 font-sans">
-                  Parcourez nos templates Notion, personnalisez vos options et testez la validation de commande.
-                </p>
-                <button
-                  id="checkout-continue-shopping-btn"
-                  onClick={onClose}
-                  className="px-6 py-2.5 text-xs font-semibold tracking-wider uppercase text-white transition-all shadow-sm"
-                  style={{
-                    backgroundColor: themeSettings.primaryColor,
-                    borderRadius: themeSettings.buttonRadius === 'none' ? '0' : themeSettings.buttonRadius === 'sm' ? '0.125rem' : themeSettings.buttonRadius === 'md' ? '0.375rem' : themeSettings.buttonRadius === 'lg' ? '0.5rem' : '9999px',
-                  }}
-                >
-                  Continuer les achats
-                </button>
+            {panier.length === 0 ? (
+              <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+                <p className="text-lg font-bold text-encre">Ton panier est vide.</p>
+                <p className="mt-1 text-encre-douce">Ajoute un article pour le retrouver ici.</p>
+                <a href="#catalogue" onClick={onFermer} className="mt-5 rounded-full bg-encre px-5 py-2.5 text-sm font-bold text-white">
+                  Voir la sélection
+                </a>
               </div>
             ) : (
-              <div className="flex-1 overflow-y-auto flex flex-col">
-                <AnimatePresence mode="wait">
-                  {checkoutStep === 'cart' && (
-                    <motion.div
-                      key="step-cart"
-                      initial={{ opacity: 0, x: -15 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 15 }}
-                      className="p-4 space-y-4 flex-1"
-                    >
-                      {cart.map((item) => {
-                        const variantText = Object.entries(item.selectedVariant)
-                          .map(([key, val]) => `${key}: ${val}`)
-                          .join(' / ');
-
-                        return (
-                          <motion.div
-                            key={item.id}
-                            layout
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="flex gap-3 pb-3 border-b border-gray-100 last:border-0"
-                          >
-                            <img
-                              src={item.product.images[0]}
-                              alt={item.product.title}
-                              className="w-16 h-16 object-cover bg-gray-50 border border-gray-100 shrink-0"
-                              style={{
-                                borderRadius: themeSettings.cardRadius === 'none' ? '0' : themeSettings.cardRadius === 'sm' ? '0.125rem' : themeSettings.cardRadius === 'md' ? '0.375rem' : themeSettings.cardRadius === 'lg' ? '0.5rem' : '0.75rem',
-                              }}
-                              referrerPolicy="no-referrer"
-                            />
-                            <div className="flex-1 flex flex-col justify-between">
-                              <div>
-                                <h4 className="font-semibold text-sm leading-tight text-gray-900">{item.product.title}</h4>
-                                {variantText && (
-                                  <p className="text-[11px] font-sans text-gray-500 font-medium mt-0.5">{variantText}</p>
-                                )}
-                              </div>
-                              
-                              <div className="flex justify-between items-center mt-2">
-                                <div className="flex items-center border border-gray-200 rounded">
-                                  <button
-                                    id={`qty-minus-${item.id}`}
-                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                    className="p-1 px-1.5 text-gray-500 hover:text-black hover:bg-gray-100 transition-colors"
-                                  >
-                                    <Minus className="w-3 h-3" />
-                                  </button>
-                                  <span className="px-2 text-xs font-semibold font-sans min-w-[20px] text-center">
-                                    {item.quantity}
-                                  </span>
-                                  <button
-                                    id={`qty-plus-${item.id}`}
-                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                    className="p-1 px-1.5 text-gray-500 hover:text-black hover:bg-gray-100 transition-colors"
-                                  >
-                                    <Plus className="w-3 h-3" />
-                                  </button>
-                                </div>
-                                
-                                <div className="flex items-center gap-2">
-                                  <span className="font-semibold text-xs font-sans">
-                                    {(getItemPrice(item) * item.quantity).toFixed(2)}€
-                                  </span>
-                                  <button
-                                    id={`remove-item-${item.id}`}
-                                    onClick={() => removeItem(item.id)}
-                                    className="text-gray-400 hover:text-red-600 p-1 rounded-md hover:bg-red-50 transition-colors"
-                                    title="Supprimer l'article"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </motion.div>
-                  )}
-
-                  {checkoutStep === 'shipping' && (
-                    <motion.div
-                      key="step-shipping"
-                      initial={{ opacity: 0, x: 15 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -15 }}
-                      className="p-4 space-y-3 flex-1 font-sans"
-                    >
-                      <h3 className="font-semibold font-serif text-sm text-gray-900 tracking-tight">Coordonnées de réception numérique</h3>
-                      
-                      <div className="space-y-3 text-xs">
-                        <div>
-                          <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Nom Complet</label>
-                          <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Ex: Marie Dupont"
-                            className="w-full border border-gray-200 p-2.5 rounded-sm focus:outline-none focus:ring-1 focus:ring-zinc-800 focus:border-zinc-800 bg-white text-gray-900"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Adresse Email (Pour l'envoi immédiat)</label>
-                          <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full border border-gray-200 p-2.5 rounded-sm focus:outline-none focus:ring-1 focus:ring-zinc-800 focus:border-zinc-800 bg-white text-gray-900"
-                            placeholder="votre@email.com"
-                            required
-                          />
-                        </div>
-
-                        <div className="bg-emerald-50 text-emerald-950 p-3 rounded border border-emerald-100 flex items-start gap-2 text-[11px] leading-relaxed mt-2 font-medium">
-                          <Shield className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
-                          <div>
-                            <span className="font-semibold block mb-0.5">Envoi garanti sous 10 secondes</span>
-                            Tous nos templates d'organisation sont 100% digitaux. Indiquez votre adresse e-mail pour recevoir vos liens de duplication Notion instantanément.
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-
-
-                </AnimatePresence>
-
-                {/* Sticky Summary & Action Footer */}
-                <div className="mt-auto border-t border-gray-100 p-4 bg-gray-50/80 space-y-3 font-sans">
-
-                  <div className="space-y-1.5 text-xs text-gray-500">
-                    <div className="flex justify-between">
-                      <span>Sous-total Panier</span>
-                      <span className="text-gray-900 font-bold">{subtotal.toFixed(2)}€</span>
-                    </div>
-
-                    {appliedDiscount && (
-                      <div className="flex justify-between text-emerald-700 font-medium">
-                        <span>Réduction ({appliedDiscount.code})</span>
-                        <span>-{discountAmount.toFixed(2)}€</span>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between">
-                      <span>Frais de livraison</span>
-                      <span className="text-gray-900 font-semibold">
-                        GRATUIT
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between text-sm font-bold text-gray-900 border-t border-gray-100/80 pt-1.5 mt-1.5">
-                      <span className="font-semibold">Montant Total</span>
-                      <span className="text-base">{grandTotal.toFixed(2)}€</span>
-                    </div>
-                  </div>
-
-                  {/* Dynamic checkout labels */}
-                  <div className="flex gap-2 pt-2">
-                    {checkoutStep !== 'cart' && (
-                      <button
-                        id="checkout-back-btn"
-                        onClick={() => {
-                          if (checkoutStep === 'shipping') setCheckoutStep('cart');
-                        }}
-                        className="flex-1 py-3 text-xs tracking-wider uppercase bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold rounded-sm transition-all"
-                      >
-                        Retour
-                      </button>
-                    )}
-                    
-                    <button
-                      id="checkout-action-btn"
-                      onClick={handleCheckout}
-                      disabled={isSubmitting || stripeLoading}
-                      className="flex-[2] py-3 text-xs tracking-wider uppercase text-white font-bold transition-all shadow-md flex items-center justify-center gap-1.5 hover:shadow-lg hover:brightness-110 disabled:opacity-70 disabled:cursor-not-allowed"
-                      style={{
-                        backgroundColor: themeSettings.primaryColor,
-                        borderRadius: themeSettings.buttonRadius === 'none' ? '0' : themeSettings.buttonRadius === 'sm' ? '0.125rem' : themeSettings.buttonRadius === 'md' ? '0.375rem' : themeSettings.buttonRadius === 'lg' ? '0.5rem' : '9999px',
-                        textTransform: themeSettings.uppercaseButtons ? 'uppercase' : 'none',
-                      }}
-                    >
-                      {isSubmitting || stripeLoading ? (
-                        <>
-                          <RefreshCcw className="w-3.5 h-3.5 animate-spin" />
-                          {stripeLoading ? 'Redirection vers Stripe...' : 'Traitement en cours...'}
-                        </>
-                      ) : checkoutStep === 'cart' ? (
-                        <>
-                          <CreditCard className="w-3.5 h-3.5" />
-                          Valider la commande
-                        </>
-                      ) : (
-                        `Payer & Finaliser (${grandTotal.toFixed(2)}€)`
-                      )}
-                    </button>
+              <>
+                <div className="border-b border-encre/10 px-6 py-4">
+                  <p className="text-sm font-semibold text-encre">
+                    {reste > 0 ? `Plus que ${euros(reste)} pour la livraison offerte` : 'Livraison offerte'}
+                  </p>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-lavis" aria-hidden>
+                    <div className="h-full rounded-full bg-accent-2 transition-[width] duration-500" style={{ width: `${progression}%` }} />
                   </div>
                 </div>
-              </div>
+
+                <ul className="flex-1 divide-y divide-encre/10 overflow-y-auto px-6">
+                  {panier.map((a) => {
+                    const options = Object.values(a.variante).join(', ');
+                    return (
+                      <li key={a.cle} className="flex gap-4 py-5">
+                        <ProductArt produit={a.produit} taille="mini" className="h-20 w-20 shrink-0" />
+                        <div className="flex min-w-0 flex-1 flex-col">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="font-bold leading-snug text-encre">{a.produit.titre}</p>
+                              {options && <p className="text-sm text-encre-douce">{options}</p>}
+                            </div>
+                            <p className="shrink-0 font-bold text-encre">{euros(a.produit.prix * a.quantite)}</p>
+                          </div>
+                          <div className="mt-auto flex items-center justify-between pt-2">
+                            <div className="flex items-center rounded-full border-2 border-encre/15">
+                              <button type="button" onClick={() => changerQuantite(a.cle, a.quantite - 1)} className="p-1.5 text-encre" aria-label={`Retirer un ${a.produit.titre}`}>
+                                <Minus className="h-3.5 w-3.5" aria-hidden />
+                              </button>
+                              <span className="w-6 text-center text-sm font-bold text-encre">{a.quantite}</span>
+                              <button
+                                type="button"
+                                onClick={() => changerQuantite(a.cle, a.quantite + 1)}
+                                disabled={a.quantite >= 10}
+                                className="p-1.5 text-encre disabled:opacity-30"
+                                aria-label={`Ajouter un ${a.produit.titre}`}
+                              >
+                                <Plus className="h-3.5 w-3.5" aria-hidden />
+                              </button>
+                            </div>
+                            <button type="button" onClick={() => retirer(a.cle)} className="inline-flex items-center gap-1 text-sm text-encre-douce hover:text-encre">
+                              <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                              Retirer
+                            </button>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                <div className="border-t border-encre/10 bg-lavis px-6 py-5">
+                  <dl className="space-y-1.5 text-[15px]">
+                    <div className="flex justify-between text-encre-douce">
+                      <dt>Sous-total</dt>
+                      <dd>{euros(sousTotal)}</dd>
+                    </div>
+                    <div className="flex justify-between text-encre-douce">
+                      <dt>Livraison ({BOUTIQUE.delai.toLowerCase()})</dt>
+                      <dd>{port === 0 ? 'Offerte' : euros(port)}</dd>
+                    </div>
+                    <div className="flex justify-between pt-1 text-lg font-extrabold text-encre">
+                      <dt>Total</dt>
+                      <dd>{euros(total)}</dd>
+                    </div>
+                  </dl>
+                  <button
+                    type="button"
+                    onClick={() => payer(panier)}
+                    disabled={chargement}
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-encre px-6 py-4 text-[15px] font-bold text-white disabled:opacity-60"
+                  >
+                    <Lock className="h-4 w-4" aria-hidden />
+                    {chargement ? 'Redirection vers le paiement…' : `Payer ${euros(total)}`}
+                  </button>
+                  {erreur && <p className="mt-3 text-center text-sm font-semibold text-red-700" role="alert">{erreur}</p>}
+                  {!erreur && (
+                    <p className="mt-3 text-center text-xs text-encre-douce">
+                      {APERCU ? 'Aperçu : le paiement s’active une fois le site en ligne.' : 'Adresse de livraison et carte demandées sur la page sécurisée Stripe.'}
+                    </p>
+                  )}
+                </div>
+              </>
             )}
-          </motion.div>
+          </motion.aside>
         </>
       )}
     </AnimatePresence>

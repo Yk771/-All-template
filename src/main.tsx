@@ -1,5 +1,11 @@
-import {StrictMode} from 'react';
-import {createRoot} from 'react-dom/client';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import '@fontsource/bagel-fat-one/latin-400.css';
+import '@fontsource/figtree/latin-400.css';
+import '@fontsource/figtree/latin-500.css';
+import '@fontsource/figtree/latin-600.css';
+import '@fontsource/figtree/latin-700.css';
+import '@fontsource/figtree/latin-800.css';
 import App from './App.tsx';
 import './index.css';
 

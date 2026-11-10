@@ -1,159 +1,138 @@
-import { useState } from 'react';
-import SuccessPage from './pages/SuccessPage';
-import { CheckCircle } from 'lucide-react';
-import { ShopifySection, ThemeSettings, Product, CartItem, SelectedVariant } from './types';
-import { DEFAULT_SECTIONS, THEME_PRESETS } from './data/initialData';
-import StorefrontPreview from './components/StorefrontPreview';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { produitsDeLaSaison, trouverProduit, type Produit } from '../shared/catalog';
+import { BOUTIQUE, saisonActive, type Saison } from '../shared/config';
+import Header from './components/Header';
+import { Etapes, FAQ, Footer, Garanties, Hero } from './components/Sections';
+import Catalogue from './components/Catalogue';
+import ProductModal from './components/ProductModal';
 import CartDrawer from './components/CartDrawer';
-import { motion, AnimatePresence } from 'motion/react';
+import SuccessPage from './pages/SuccessPage';
+import LegalPage, { PAGES_LEGALES, type PageLegale } from './pages/LegalPage';
+import { APERCU, CLE_PANIER, type ArticlePanier } from './types';
 
-interface Toast {
-  id: string;
-  message: string;
-  type: 'success' | 'info';
+const cleDe = (id: string, variante: Record<string, string>) => `${id}|${JSON.stringify(variante)}`;
+
+function lirePanier(): ArticlePanier[] {
+  try {
+    const brut = JSON.parse(localStorage.getItem(CLE_PANIER) || '[]') as { id: string; variante: Record<string, string>; quantite: number }[];
+    return brut.flatMap((a) => {
+      const produit = trouverProduit(a.id);
+      return produit ? [{ cle: cleDe(a.id, a.variante), produit, variante: a.variante, quantite: a.quantite }] : [];
+    });
+  } catch {
+    return [];
+  }
 }
 
+const lireHash = () => window.location.hash.replace('#', '');
+
 export default function App() {
-  // Route page succès après paiement
-  if (window.location.pathname === '/success') {
-    return <SuccessPage />;
-  }
+  const surPageMerci = window.location.pathname.startsWith('/merci') || window.location.pathname.startsWith('/success');
 
-  const [sections] = useState<ShopifySection[]>(DEFAULT_SECTIONS);
-  const [themeSettings] = useState<ThemeSettings>(THEME_PRESETS.dawn.settings);
+  const [saison, setSaison] = useState<Saison>(() => saisonActive());
+  const [hash, setHash] = useState(lireHash);
+  const [panier, setPanier] = useState<ArticlePanier[]>(lirePanier);
+  const [panierOuvert, setPanierOuvert] = useState(false);
+  const [fiche, setFiche] = useState<Produit | null>(null);
 
-  // Cart & checkout states
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  
-  // UI Notifications Toasts
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const produits = useMemo(() => produitsDeLaSaison(saison), [saison]);
+  const pageLegale = (PAGES_LEGALES as string[]).includes(hash) ? (hash as PageLegale) : null;
 
-  const addToast = (message: string, type: 'success' | 'info' = 'success') => {
-    const id = `${Date.now()}-${Math.random()}`;
-    setToasts((prev) => [...prev, { id, message, type }]);
-    
-    // Auto clear
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 3500);
-  };
+  useEffect(() => {
+    document.documentElement.dataset.saison = saison;
+    document.title = `${BOUTIQUE.nom} : ${saison === 'ete' ? 'tout pour l’été' : 'tout pour l’hiver'}`;
+  }, [saison]);
 
-  const handleAddToCart = (product: Product, selectedVariant: SelectedVariant, customText?: string) => {
-    // Unique ID combining product + variant combination details and customText
-    const uniqueCombinationId = `${product.id}-${JSON.stringify(selectedVariant)}-${customText || ''}`;
-
-    const existing = cart.find((item) => item.id === uniqueCombinationId);
-
-    setCart((prev) => {
-      const alreadyInCart = prev.find((item) => item.id === uniqueCombinationId);
-      if (alreadyInCart) {
-        return prev.map((item) =>
-          item.id === uniqueCombinationId ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [...prev, { id: uniqueCombinationId, product, selectedVariant, quantity: 1, customText }];
-    });
-
-    if (existing) {
-      addToast(`Quantité mise à jour pour ${product.title} dans votre panier`, 'info');
-    } else {
-      const variantDesc = Object.values(selectedVariant).join(' / ');
-      const displayTitle = variantDesc ? `${product.title} (${variantDesc})` : product.title;
-      addToast(`${displayTitle} a été ajouté à votre panier !`);
-    }
-
-    // Auto trigger slide drawer open
-    setIsCartOpen(true);
-  };
-
-  const handleUpdateQuantity = (id: string, newQty: number) => {
-    if (newQty <= 0) {
-      handleRemoveItem(id);
+  // Navigation par ancres (#catalogue, #faq…) et pages légales (#cgv, #retours, #mentions)
+  useEffect(() => {
+    const surChangement = () => setHash(lireHash());
+    window.addEventListener('hashchange', surChangement);
+    return () => window.removeEventListener('hashchange', surChangement);
+  }, []);
+  useEffect(() => {
+    if (pageLegale) {
+      window.scrollTo({ top: 0 });
       return;
     }
-    setCart((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, quantity: newQty } : item))
-    );
-  };
+    const cible = hash && document.getElementById(hash);
+    if (cible) cible.scrollIntoView();
+  }, [hash, pageLegale]);
 
-  const handleRemoveItem = (id: string) => {
-    const itemToRemove = cart.find((i) => i.id === id);
-
-    setCart((prev) => prev.filter((i) => i.id !== id));
-
-    if (itemToRemove) {
-      addToast(`${itemToRemove.product.title} retiré du panier`, 'info');
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        CLE_PANIER,
+        JSON.stringify(panier.map((a) => ({ id: a.produit.id, variante: a.variante, quantite: a.quantite }))),
+      );
+    } catch {
+      /* stockage indisponible : le panier reste en mémoire */
     }
-  };
+  }, [panier]);
 
-  const handleClearCart = () => {
-    setCart([]);
-  };
+  const ajouter = useCallback((produit: Produit, variante: Record<string, string> = {}, quantite = 1) => {
+    const cle = cleDe(produit.id, variante);
+    setPanier((prev) => {
+      const existe = prev.find((a) => a.cle === cle);
+      if (existe) return prev.map((a) => (a.cle === cle ? { ...a, quantite: Math.min(10, a.quantite + quantite) } : a));
+      return [...prev, { cle, produit, variante, quantite }];
+    });
+    setFiche(null);
+    setPanierOuvert(true);
+  }, []);
 
-  const handleCheckoutSuccess = () => {
-    setIsCartOpen(false);
-    handleClearCart();
-    
-    // Push custom success toast
-    addToast('🎉 Votre commande a été enregistrée avec succès !', 'success');
-  };
+  const changerQuantite = useCallback((cle: string, quantite: number) => {
+    setPanier((prev) =>
+      quantite <= 0 ? prev.filter((a) => a.cle !== cle) : prev.map((a) => (a.cle === cle ? { ...a, quantite: Math.min(10, quantite) } : a)),
+    );
+  }, []);
+  const retirer = useCallback((cle: string) => setPanier((prev) => prev.filter((a) => a.cle !== cle)), []);
+  const fermerFiche = useCallback(() => setFiche(null), []);
+  const fermerPanier = useCallback(() => setPanierOuvert(false), []);
 
-  const activeCartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+  if (surPageMerci) return <SuccessPage />;
+
+  const nbArticles = panier.reduce((s, a) => s + a.quantite, 0);
 
   return (
-    <div className="min-h-screen bg-white text-neutral-800 antialiased font-sans flex flex-col relative">
-      
-      {/* Real storefront scrollable viewport */}
-      <div className="flex-1 flex flex-col overflow-y-auto">
-        <StorefrontPreview
-          sections={sections}
-          themeSettings={themeSettings}
-          deviceMode="desktop"
-          setDeviceMode={() => {}}
-          activeSectionId={null}
-          setActiveSectionId={() => {}}
-          onAddToCart={handleAddToCart}
-          cartCount={activeCartCount}
-          onOpenCart={() => setIsCartOpen(true)}
-          addToast={addToast}
-        />
-      </div>
+    <div className="flex min-h-screen flex-col">
+      <Header nbArticles={nbArticles} onPanier={() => setPanierOuvert(true)} />
 
-      {/* Sliding checkout / shopping bag side-drawer */}
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        cart={cart}
-        updateQuantity={handleUpdateQuantity}
-        removeItem={handleRemoveItem}
-        themeSettings={themeSettings}
-        onCheckoutSuccess={handleCheckoutSuccess}
-      />
+      {pageLegale ? (
+        <LegalPage page={pageLegale} />
+      ) : (
+        <main>
+          <Hero saison={saison} nb={produits.length} />
+          <Garanties />
+          <Catalogue key={saison} saison={saison} produits={produits} onOuvrir={setFiche} onAjouter={(p) => ajouter(p)} />
+          <Etapes />
+          <FAQ contreSaison={BOUTIQUE.modeSaison === 'contre-saison'} />
+        </main>
+      )}
 
-      {/* Beautiful standard notifications toast system */}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none">
-        <AnimatePresence>
-          {toasts.map((toast) => (
-            <motion.div
-              layout
-              key={toast.id}
-              initial={{ opacity: 0, y: 15, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
-              className={`p-3.5 rounded-lg shadow-xl border text-xs font-semibold flex items-center gap-2.5 pointer-events-auto transition-transform ${
-                toast.type === 'success' 
-                  ? 'bg-emerald-900 border-emerald-800 text-white shadow-emerald-950/20' 
-                  : 'bg-red-950 border-red-900 text-red-100 shadow-red-950/20'
-              }`}
+      <Footer />
+
+      <ProductModal produit={fiche} onFermer={fermerFiche} onAjouter={ajouter} />
+      <CartDrawer ouvert={panierOuvert} onFermer={fermerPanier} panier={panier} changerQuantite={changerQuantite} retirer={retirer} />
+
+      {APERCU && (
+        <div className="fixed bottom-4 left-4 z-30 flex items-center gap-1 rounded-full border-2 border-encre bg-white p-1 pl-4 text-sm font-bold text-encre shadow-lg">
+          <span className="mr-1">Aperçu</span>
+          {(['ete', 'hiver'] as Saison[]).map((s) => (
+            <button
+              key={s}
+              type="button"
+              aria-pressed={saison === s}
+              onClick={() => {
+                setSaison(s);
+                window.scrollTo({ top: 0 });
+              }}
+              className={`rounded-full px-3.5 py-1.5 ${saison === s ? 'bg-encre text-white' : 'hover:bg-lavis'}`}
             >
-              <CheckCircle className={`w-4 h-4 shrink-0 ${toast.type === 'success' ? 'text-amber-400' : 'text-red-400'}`} />
-              <div className="flex-1 pr-1">{toast.message}</div>
-            </motion.div>
+              {s === 'ete' ? 'Été' : 'Hiver'}
+            </button>
           ))}
-        </AnimatePresence>
-      </div>
-
+        </div>
+      )}
     </div>
   );
 }

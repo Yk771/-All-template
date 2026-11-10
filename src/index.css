@@ -1,8 +1,71 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 @import "tailwindcss";
 
+/* Palette par saison : l'attribut data-saison est posé sur <html> par App.tsx */
+:root,
+[data-saison='ete'] {
+  --encre: #102a56;
+  --encre-douce: #4a5f82;
+  --fond: #ffffff;
+  --lavis: #eaf6fb;
+  --lavis-fort: #cdebf6;
+  --accent: #ffc83d;
+  --accent-texte: #102a56;
+  --accent-2: #1fa9c2;
+  --sol: #f7e4b5;
+  --astre: #ffc83d;
+  --horizon: #52c3d6;
+  --rayure-1: #ffc83d;
+  --rayure-2: #1fa9c2;
+  --rayure-3: #102a56;
+}
+
+[data-saison='hiver'] {
+  --encre: #102a56;
+  --encre-douce: #4a5f82;
+  --fond: #ffffff;
+  --lavis: #eef2f8;
+  --lavis-fort: #d9e3f1;
+  --accent: #d42a44;
+  --accent-texte: #ffffff;
+  --accent-2: #5b8fd0;
+  --sol: #f2f6fc;
+  --astre: #f4f7fc;
+  --horizon: #b9cde8;
+  --rayure-1: #d42a44;
+  --rayure-2: #5b8fd0;
+  --rayure-3: #102a56;
+}
+
+@theme inline {
+  --font-display: 'Bagel Fat One', 'Figtree', system-ui, sans-serif;
+  --font-sans: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --color-encre: var(--encre);
+  --color-encre-douce: var(--encre-douce);
+  --color-fond: var(--fond);
+  --color-lavis: var(--lavis);
+  --color-lavis-fort: var(--lavis-fort);
+  --color-accent: var(--accent);
+  --color-accent-texte: var(--accent-texte);
+  --color-accent-2: var(--accent-2);
+}
+
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   body {
-    background-color: #f4f4f5;
+    background: var(--fond);
+    color: var(--encre);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 3px solid var(--accent-2);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
 }
