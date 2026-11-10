@@ -1,25 +1,23 @@
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { CATEGORIES, type Produit } from '../../shared/catalog';
-import { euros, type Saison } from '../../shared/config';
-import ProductArt from './ProductArt';
+import type { Saison } from '../../shared/config';
+import ProductCard from './ProductCard';
 import { COPIE } from './Sections';
 
 interface Props {
   saison: Saison;
   produits: Produit[];
-  onOuvrir: (p: Produit) => void;
   onAjouter: (p: Produit) => void;
 }
 
 const normaliser = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
-export default function Catalogue({ saison, produits, onOuvrir, onAjouter }: Props) {
+export default function Catalogue({ saison, produits, onAjouter }: Props) {
   const [categorie, setCategorie] = useState<string>('tout');
   const [recherche, setRecherche] = useState('');
 
   const categories = CATEGORIES[saison];
-  const nomCategorie = (id: string) => categories.find((c) => c.id === id)?.nom ?? '';
 
   const visibles = useMemo(() => {
     const q = normaliser(recherche.trim());
@@ -30,7 +28,7 @@ export default function Catalogue({ saison, produits, onOuvrir, onAjouter }: Pro
     );
   }, [produits, categorie, recherche]);
 
-  const filtres = [{ id: 'tout', nom: 'Tout' }, ...categories];
+  const filtres = [{ id: 'tout', nom: 'Tout' }, ...categories.filter((c) => produits.some((p) => p.categorie === c.id))];
 
   return (
     <section id="catalogue" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-14 md:py-20">
@@ -86,30 +84,8 @@ export default function Catalogue({ saison, produits, onOuvrir, onAjouter }: Pro
       ) : (
         <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
           {visibles.map((p) => (
-            <li key={p.id} className="flex flex-col">
-              <button type="button" onClick={() => onOuvrir(p)} className="group text-left" aria-label={`Voir ${p.titre}`}>
-                <div className="relative">
-                  <ProductArt produit={p} className="aspect-square w-full transition-transform duration-300 group-hover:-translate-y-1" />
-                  {p.badge && (
-                    <span className="absolute left-3 top-3 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-encre">
-                      {p.badge}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-3 text-[13px] font-semibold text-encre-douce">{nomCategorie(p.categorie)}</p>
-                <h3 className="mt-0.5 text-[17px] font-bold leading-snug text-encre group-hover:underline">{p.titre}</h3>
-                <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-encre-douce">{p.resume}</p>
-              </button>
-              <div className="mt-auto flex items-center justify-between gap-2 pt-3">
-                <span className="text-lg font-extrabold text-encre">{euros(p.prix)}</span>
-                <button
-                  type="button"
-                  onClick={() => (p.variantes?.length ? onOuvrir(p) : onAjouter(p))}
-                  className="rounded-full bg-accent px-4 py-2 text-sm font-bold text-accent-texte transition-transform hover:-translate-y-0.5"
-                >
-                  {p.variantes?.length ? 'Choisir' : 'Ajouter'}
-                </button>
-              </div>
+            <li key={p.id}>
+              <ProductCard produit={p} onAjouter={onAjouter} />
             </li>
           ))}
         </ul>

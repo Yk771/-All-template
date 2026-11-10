@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { BOUTIQUE, euros } from '../../shared/config';
+import { lienAccueil } from '../navigation';
 
 export type PageLegale = 'cgv' | 'retours' | 'mentions';
 export const PAGES_LEGALES: PageLegale[] = ['cgv', 'retours', 'mentions'];
@@ -43,7 +44,7 @@ const PAGES: Record<PageLegale, { titre: string; blocs: { h: string; p: ReactNod
       { h: 'Commande et paiement', p: 'La commande est ferme après le paiement par carte bancaire sur la page sécurisée Stripe. Un e-mail de confirmation est envoyé.' },
       {
         h: 'Livraison',
-        p: `Livraison en France métropolitaine. Délai indicatif : ${BOUTIQUE.delai.toLowerCase()} ouvrés après le paiement. Frais : ${euros(BOUTIQUE.fraisPort)}, offerts dès ${euros(BOUTIQUE.livraisonOfferteDes)} d’achat.`,
+        p: `Livraison en France métropolitaine, ${BOUTIQUE.delai.toLowerCase()} ouvrés après le paiement (délai indicatif). Frais : ${euros(BOUTIQUE.fraisPort)}, offerts dès ${euros(BOUTIQUE.livraisonOfferteDes)} d’achat.`,
       },
       {
         h: 'Droit de rétractation',
@@ -70,7 +71,7 @@ export default function LegalPage({ page }: { page: PageLegale }) {
   const { titre, blocs } = PAGES[page];
   return (
     <main className="mx-auto max-w-3xl px-5 py-12 md:py-16">
-      <a href="#" className="inline-flex items-center gap-2 text-sm font-bold text-encre hover:underline">
+      <a href={lienAccueil()} className="inline-flex items-center gap-2 text-sm font-bold text-encre hover:underline">
         <ArrowLeft className="h-4 w-4" aria-hidden />
         Retour à la boutique
       </a>

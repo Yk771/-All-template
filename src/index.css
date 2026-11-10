@@ -11,6 +11,7 @@
   --accent: #ffc83d;
   --accent-texte: #102a56;
   --accent-2: #1fa9c2;
+  --economie: #0b7387;
   --sol: #f7e4b5;
   --astre: #ffc83d;
   --horizon: #52c3d6;
@@ -28,6 +29,7 @@
   --accent: #d42a44;
   --accent-texte: #ffffff;
   --accent-2: #5b8fd0;
+  --economie: #2f62a3;
   --sol: #f2f6fc;
   --astre: #f4f7fc;
   --horizon: #b9cde8;
@@ -47,6 +49,7 @@
   --color-accent: var(--accent);
   --color-accent-texte: var(--accent-texte);
   --color-accent-2: var(--accent-2);
+  --color-economie: var(--economie);
 }
 
 @layer base {

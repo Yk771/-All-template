@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Lock, Minus, Plus, Trash2, X } from 'lucide-react';
+import { contenuDe, estDisponible } from '../../shared/catalog';
 import { BOUTIQUE, euros, fraisDePort } from '../../shared/config';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
 import { APERCU, type ArticlePanier } from '../types';
 import ProductArt from './ProductArt';
+import { aller, lienAccueil } from '../navigation';
 
 interface Props {
   ouvert: boolean;
@@ -23,6 +25,7 @@ export default function CartDrawer({ ouvert, onFermer, panier, changerQuantite, 
   const total = sousTotal + port;
   const reste = Math.max(0, BOUTIQUE.livraisonOfferteDes - sousTotal);
   const progression = Math.min(100, (sousTotal / BOUTIQUE.livraisonOfferteDes) * 100);
+  const indisponibles = panier.filter((a) => !estDisponible(a.produit));
 
   useEffect(() => {
     if (!ouvert) return;
@@ -64,7 +67,14 @@ export default function CartDrawer({ ouvert, onFermer, panier, changerQuantite, 
               <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
                 <p className="text-lg font-bold text-encre">Ton panier est vide.</p>
                 <p className="mt-1 text-encre-douce">Ajoute un article pour le retrouver ici.</p>
-                <a href="#catalogue" onClick={onFermer} className="mt-5 rounded-full bg-encre px-5 py-2.5 text-sm font-bold text-white">
+                <a
+                  href={lienAccueil('catalogue')}
+                  onClick={(e) => {
+                    onFermer();
+                    aller(lienAccueil('catalogue'), e);
+                  }}
+                  className="mt-5 rounded-full bg-encre px-5 py-2.5 text-sm font-bold text-white"
+                >
                   Voir la sélection
                 </a>
               </div>
@@ -82,6 +92,8 @@ export default function CartDrawer({ ouvert, onFermer, panier, changerQuantite, 
                 <ul className="flex-1 divide-y divide-encre/10 overflow-y-auto px-6">
                   {panier.map((a) => {
                     const options = Object.values(a.variante).join(', ');
+                    const inclus = contenuDe(a.produit).map((c) => c.titre).join(', ');
+                    const dispo = estDisponible(a.produit);
                     return (
                       <li key={a.cle} className="flex gap-4 py-5">
                         <ProductArt produit={a.produit} taille="mini" className="h-20 w-20 shrink-0" />
@@ -90,6 +102,8 @@ export default function CartDrawer({ ouvert, onFermer, panier, changerQuantite, 
                             <div className="min-w-0">
                               <p className="font-bold leading-snug text-encre">{a.produit.titre}</p>
                               {options && <p className="text-sm text-encre-douce">{options}</p>}
+                              {inclus && <p className="text-sm text-encre-douce">{inclus}</p>}
+                              {!dispo && <p className="text-sm font-semibold text-red-700">Plus disponible : retire-le pour payer</p>}
                             </div>
                             <p className="shrink-0 font-bold text-encre">{euros(a.produit.prix * a.quantite)}</p>
                           </div>
@@ -138,7 +152,7 @@ export default function CartDrawer({ ouvert, onFermer, panier, changerQuantite, 
                   <button
                     type="button"
                     onClick={() => payer(panier)}
-                    disabled={chargement}
+                    disabled={chargement || indisponibles.length > 0}
                     className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-encre px-6 py-4 text-[15px] font-bold text-white disabled:opacity-60"
                   >
                     <Lock className="h-4 w-4" aria-hidden />

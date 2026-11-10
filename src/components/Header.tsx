@@ -1,5 +1,6 @@
 import { ShoppingBag } from 'lucide-react';
 import { BOUTIQUE, euros } from '../../shared/config';
+import { lienAccueil } from '../navigation';
 
 interface Props {
   nbArticles: number;
@@ -14,13 +15,13 @@ export default function Header({ nbArticles, onPanier }: Props) {
       </div>
       <header className="sticky top-0 z-30 border-b border-encre/10 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
-          <a href="#" className="font-display text-2xl leading-none text-encre" aria-label={`${BOUTIQUE.nom}, accueil`}>
+          <a href={lienAccueil()} className="font-display text-2xl leading-none text-encre" aria-label={`${BOUTIQUE.nom}, accueil`}>
             {BOUTIQUE.nom}
           </a>
           <nav className="hidden items-center gap-7 text-[15px] font-semibold text-encre-douce md:flex" aria-label="Navigation principale">
-            <a href="#catalogue" className="hover:text-encre">La sélection</a>
-            <a href="#comment" className="hover:text-encre">Livraison</a>
-            <a href="#faq" className="hover:text-encre">Questions</a>
+            <a href={lienAccueil('catalogue')} className="hover:text-encre">La sélection</a>
+            <a href={lienAccueil('comment')} className="hover:text-encre">Livraison</a>
+            <a href={lienAccueil('faq')} className="hover:text-encre">Questions</a>
           </nav>
           <button
             type="button"

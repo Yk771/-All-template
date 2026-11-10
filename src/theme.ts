@@ -14,6 +14,7 @@ export const iconeDe = (nom: string): LucideIcon => ICONES[nom] ?? Package;
 
 /** Couleur de fond des illustrations, par catégorie. */
 export const COULEUR_CATEGORIE: Record<string, string> = {
+  kits: '#ffffff',
   // été
   plage: '#ffe08a',
   chaleur: '#c4e7f6',

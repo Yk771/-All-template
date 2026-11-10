@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { trouverProduit } from '../shared/catalog.js';
+import { contenuDe, estDisponible, trouverProduit } from '../shared/catalog.js';
 import { BOUTIQUE, fraisDePort } from '../shared/config.js';
 
 interface ArticleDemande {
@@ -36,6 +36,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!produit) {
         return res.status(400).json({ error: `Produit inconnu : ${a.id}` });
       }
+      if (!estDisponible(produit)) {
+        return res.status(409).json({ error: `${produit.titre} n’est plus disponible pour le moment. Retire-le du panier pour continuer.` });
+      }
       const quantite = Math.floor(Number(a.quantite));
       if (!Number.isFinite(quantite) || quantite < 1 || quantite > QUANTITE_MAX) {
         return res.status(400).json({ error: `Quantité invalide pour ${produit.titre}.` });
@@ -51,6 +54,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         variante[v.nom] = choix;
       }
       const varianteTexte = Object.values(variante).join(' / ');
+      const inclus = contenuDe(produit).map((c) => c.titre).join(' + ');
+      const nom = inclus ? `${produit.titre} : ${inclus}` : varianteTexte ? `${produit.titre} (${varianteTexte})` : produit.titre;
 
       sousTotal += produit.prix * quantite;
       lineItems.push({
@@ -58,7 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           currency: 'eur',
           unit_amount: Math.round(produit.prix * 100),
           product_data: {
-            name: varianteTexte ? `${produit.titre} (${varianteTexte})` : produit.titre,
+            name: nom,
             metadata: { produitId: produit.id, variante: varianteTexte },
           },
         },

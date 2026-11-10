@@ -5,6 +5,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { buffer } from 'micro';
 import { LIENS_AMAZON } from './_sourcing.js';
 import { BOUTIQUE, euros } from '../shared/config.js';
+import { contenuDe, trouverProduit } from '../shared/catalog.js';
 
 export const config = {
   api: { bodyParser: false },
@@ -13,13 +14,21 @@ export const config = {
 const EMAIL_FROM = process.env.EMAIL_FROM || `${BOUTIQUE.nom} <noreply@all-tempalte.fr>`;
 const EMAIL_PROPRIO = process.env.ORDER_NOTIFY_EMAIL || 'alltemplate33@gmail.com';
 
+interface Achat {
+  produitId: string;
+  titre: string;
+  quantite: number;
+  lienAmazon: string;
+}
+
 interface LigneCommande {
   produitId: string;
   titre: string;
   variante: string;
   quantite: number;
   total: number;
-  lienAmazon: string;
+  /** Ce que tu dois acheter sur Amazon (plusieurs produits pour un kit). */
+  achats: Achat[];
 }
 
 const echapper = (s: string) =>
@@ -60,13 +69,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const lignes: LigneCommande[] = items.data.map((li) => {
     const produit = li.price?.product as Stripe.Product | undefined;
     const produitId = produit?.metadata?.produitId || '';
+    const quantite = li.quantity ?? 1;
+    const fiche = trouverProduit(produitId);
+    const inclus = fiche ? contenuDe(fiche) : [];
+    const achats: Achat[] = (inclus.length ? inclus : [{ id: produitId, titre: fiche?.titre || li.description || 'Article' }]).map(
+      (c) => ({ produitId: c.id, titre: c.titre, quantite, lienAmazon: LIENS_AMAZON[c.id] || '' }),
+    );
     return {
       produitId,
       titre: li.description || produit?.name || 'Article',
       variante: produit?.metadata?.variante || '',
-      quantite: li.quantity ?? 1,
+      quantite,
       total: (li.amount_total ?? 0) / 100,
-      lienAmazon: LIENS_AMAZON[produitId] || '',
+      achats,
     };
   });
 
@@ -95,6 +110,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       stripe_payment_id: paiementId,
       created_at: new Date().toISOString(),
     });
+    if (error?.code === '23505') {
+      // Commande déjà enregistrée : Stripe a renvoyé le même événement, on ne renvoie pas les e-mails
+      return res.status(200).json({ received: true, doublon: true });
+    }
     if (error) console.error('Erreur Supabase :', error);
   }
 
@@ -105,23 +124,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   // 2) E-mail pour toi : ce qu'il faut commander sur Amazon et où le livrer
+  const bouton = (lien: string) =>
+    lien
+      ? `<a href="${lien}" style="background:#102A56;color:#fff;padding:8px 14px;border-radius:999px;text-decoration:none;font-size:13px;font-weight:700;white-space:nowrap;">Commander sur Amazon</a>`
+      : '<span style="color:#dc2626;font-size:12px;">Lien Amazon manquant</span>';
+
   const lignesProprio = lignes
-    .map(
-      (l) => `
+    .map((l) => {
+      const entete = `
       <tr>
-        <td style="padding:12px 0;border-bottom:1px solid #e2e8f0;font-size:14px;">
-          <strong>${l.quantite} × ${echapper(l.titre)}</strong><br>
-          <span style="color:#64748b;font-size:12px;">Réf. ${echapper(l.produitId)} · payé ${euros(l.total)}</span>
+        <td colspan="2" style="padding:14px 0 6px;font-size:14px;">
+          <strong>${l.quantite} × ${echapper(l.titre)}</strong>${l.variante ? ` (${echapper(l.variante)})` : ''}<br>
+          <span style="color:#64748b;font-size:12px;">Payé ${euros(l.total)}</span>
         </td>
-        <td style="padding:12px 0;border-bottom:1px solid #e2e8f0;text-align:right;">
-          ${
-            l.lienAmazon
-              ? `<a href="${l.lienAmazon}" style="background:#102A56;color:#fff;padding:8px 14px;border-radius:999px;text-decoration:none;font-size:13px;font-weight:700;">Commander sur Amazon</a>`
-              : '<span style="color:#dc2626;font-size:12px;">Lien Amazon manquant</span>'
-          }
-        </td>
+      </tr>`;
+      const achats = l.achats
+        .map(
+          (a) => `
+      <tr>
+        <td style="padding:6px 0 6px 14px;font-size:13px;color:#334155;">À acheter : ${a.quantite} × ${echapper(a.titre)}</td>
+        <td style="padding:6px 0;text-align:right;">${bouton(a.lienAmazon)}</td>
       </tr>`,
-    )
+        )
+        .join('');
+      return entete + achats + '<tr><td colspan="2" style="border-bottom:1px solid #e2e8f0;"></td></tr>';
+    })
     .join('');
 
   const { error: errProprio } = await resend.emails.send({

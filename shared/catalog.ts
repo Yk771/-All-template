@@ -26,6 +26,10 @@ export interface Produit {
   /** Optionnel : chemin d'une vraie photo, ex. '/produits/parasol.jpg' (dossier public/produits). */
   image?: string;
   badge?: string;
+  /** Mets false quand Amazon n'a plus l'article : il s'affiche « Bientôt de retour » et ne peut plus être acheté. */
+  disponible?: boolean;
+  /** Pour un kit : les identifiants des produits inclus (prix = celui du kit). */
+  contenu?: string[];
 }
 
 export interface Categorie {
@@ -35,6 +39,7 @@ export interface Categorie {
 
 export const CATEGORIES: Record<Saison, Categorie[]> = {
   ete: [
+    { id: 'kits', nom: 'Les kits' },
     { id: 'plage', nom: 'À la plage' },
     { id: 'chaleur', nom: 'Contre la chaleur' },
     { id: 'eau', nom: 'Dans l’eau' },
@@ -42,6 +47,7 @@ export const CATEGORIES: Record<Saison, Categorie[]> = {
     { id: 'soiree-ete', nom: 'Soirées dehors' },
   ],
   hiver: [
+    { id: 'kits', nom: 'Les kits' },
     { id: 'maison', nom: 'Au chaud chez soi' },
     { id: 'dehors', nom: 'Dehors' },
     { id: 'voiture', nom: 'En voiture' },
@@ -455,10 +461,116 @@ export const PRODUITS: Produit[] = [
   },
 ];
 
-export function produitsDeLaSaison(saison: Saison): Produit[] {
-  return PRODUITS.filter((p) => p.saison === saison);
-}
+// ───────────── KITS ─────────────
+// Un kit regroupe plusieurs produits du catalogue à un prix réduit.
+// Le client paie le prix du kit ; toi, tu reçois un lien Amazon par produit inclus.
+const KITS: Produit[] = [
+  {
+    id: 'kit-plage',
+    saison: 'ete',
+    categorie: 'kits',
+    titre: 'Kit plage',
+    prix: 47.9,
+    resume: 'L’ombre, le jeu et le téléphone au sec : tout pour une journée au bord de l’eau.',
+    description: 'Le parasol anti-UV, le kit de raquettes et la pochette étanche réunis dans un seul kit, moins cher qu’à l’unité.',
+    points: [],
+    contenu: ['ete-parasol', 'ete-raquettes', 'ete-pochette'],
+    icone: 'Umbrella',
+    badge: 'Kit',
+  },
+  {
+    id: 'kit-canicule',
+    saison: 'ete',
+    categorie: 'kits',
+    titre: 'Kit canicule',
+    prix: 52.9,
+    resume: 'De l’air frais sur toi et des boissons fraîches toute la journée.',
+    description: 'Le ventilateur de cou mains libres et la glacière 25 L, pour tenir quand le thermomètre dépasse 35 °C.',
+    points: [],
+    contenu: ['ete-ventilateur-cou', 'ete-glaciere'],
+    icone: 'Wind',
+    badge: 'Kit',
+  },
+  {
+    id: 'kit-terrasse',
+    saison: 'ete',
+    categorie: 'kits',
+    titre: 'Kit soirée en terrasse',
+    prix: 41.9,
+    resume: 'De la lumière sans prise et pas de moustiques.',
+    description: 'La guirlande solaire guinguette et la lampe anti-moustiques rechargeable, pour profiter des soirées dehors.',
+    points: [],
+    contenu: ['ete-guirlande', 'ete-anti-moustique'],
+    icone: 'Lightbulb',
+    badge: 'Kit',
+  },
+  {
+    id: 'kit-cocooning',
+    saison: 'hiver',
+    categorie: 'kits',
+    titre: 'Kit cocooning',
+    prix: 72.9,
+    resume: 'Le plaid chauffant et la lumière douce des longues soirées.',
+    description: 'Le plaid chauffant, le lot de 6 bougies LED et la guirlande blanc chaud, pour un salon tout doux cet hiver.',
+    points: [],
+    contenu: ['hiver-plaid', 'hiver-bougies', 'hiver-guirlande'],
+    icone: 'Sofa',
+    badge: 'Kit',
+  },
+  {
+    id: 'kit-balade',
+    saison: 'hiver',
+    categorie: 'kits',
+    titre: 'Kit balade d’hiver',
+    prix: 51.9,
+    resume: 'Les mains, le cou et le thé au chaud pendant toute la sortie.',
+    description: 'Le chauffe-mains rechargeable, le tour de cou polaire et le thermos 1 L, pour les balades et les matchs dans le froid.',
+    points: [],
+    contenu: ['hiver-chauffe-mains', 'hiver-tour-de-cou', 'hiver-thermos'],
+    icone: 'Flame',
+    badge: 'Kit',
+  },
+  {
+    id: 'kit-voiture',
+    saison: 'hiver',
+    categorie: 'kits',
+    titre: 'Kit voiture hiver',
+    prix: 23.9,
+    resume: 'Fini les matins à gratter le pare-brise.',
+    description: 'La bâche antigel pour la nuit et le grattoir avec gant pour les jours où il a gelé quand même.',
+    points: [],
+    contenu: ['hiver-bache', 'hiver-raclette'],
+    icone: 'CarFront',
+    badge: 'Kit',
+  },
+];
+
+PRODUITS.push(...KITS);
 
 export function trouverProduit(id: string): Produit | undefined {
   return PRODUITS.find((p) => p.id === id);
+}
+
+/** Produits inclus dans un kit (vide pour un produit simple). */
+export function contenuDe(p: Produit): Produit[] {
+  return (p.contenu ?? []).map(trouverProduit).filter((x): x is Produit => Boolean(x));
+}
+
+/** Un kit n'est disponible que si tous ses produits le sont. */
+export function estDisponible(p: Produit): boolean {
+  return p.disponible !== false && contenuDe(p).every((c) => c.disponible !== false);
+}
+
+/** Pour un kit : prix des produits achetés séparément. */
+export function prixAUnite(p: Produit): number {
+  return contenuDe(p).reduce((s, c) => s + c.prix, 0);
+}
+
+/** Kits, puis produits disponibles, puis ruptures en dernier. */
+export function produitsDeLaSaison(saison: Saison): Produit[] {
+  const rang = (p: Produit) => (p.contenu ? 0 : 1) + (estDisponible(p) ? 0 : 2);
+  return PRODUITS.filter((p) => p.saison === saison)
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => rang(a.p) - rang(b.p) || a.i - b.i)
+    .map(({ p }) => p);
 }
